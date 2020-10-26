@@ -1,52 +1,101 @@
-import RPi.GPIO as GPIO  # import gpio
-import time  # import time library
+import RPi.GPIO as GPIO
+import time
 import spidev
-from lib_nrf24.lib_nrf24 import NRF24  # import NRF24 library
+from lib_nrf24.lib_nrf24 import NRF24
 
+GPIO.setmode(GPIO.BCM)
 
-
-
-
-
-
-
-
-GPIO.setmode(GPIO.BCM)  # set the gpio mode
-
-# set the pipe address. this address shoeld be entered on the receiver alo
 pipes = [[0xE0, 0xE0, 0xF1, 0xF1, 0xE0], [0xF1, 0xF1, 0xF0, 0xF0, 0xE0]]
-
-
-radio = NRF24(GPIO, spidev.SpiDev())  # use the gpio pins
-radio.begin(1, 4)  # start the radio and set the ce,csn pin ce= GPIO08, csn= GPIO25
-radio.setPayloadSize(32)  # set the payload size as 32 bytes
-radio.setChannel(50)  # set the channel as 76 hex
-radio.setDataRate(NRF24.BR_1MBPS)  # set radio data rate
-radio.setPALevel(NRF24.PA_HIGH)  # set PA level
-
-radio.setAutoAck(False)  # set acknowledgement as true
+radio = NRF24(GPIO, spidev.SpiDev())
+radio.begin(1, 4)
+radio.setPayloadSize(32)
+radio.setChannel(50)
+radio.setDataRate(NRF24.BR_1MBPS)
+radio.setPALevel(NRF24.PA_HIGH)
+radio.setAutoAck(False)
 radio.enableDynamicPayloads()
-# radio.enableAckPayload()
 
-radio.openWritingPipe(pipes[0])  # open the defined pipe for writing
+radio.openWritingPipe(pipes[0])
 radio.powerUp()
-radio.printDetails()  # print basic detals of radio
+radio.printDetails()
 
-sendMessage = [33,1,1,1]  # the message to be sent
-# while len(sendMessage) < 32:
-#     sendMessage.append(0)
+current_message_id = 0
 
 while True:
-    start = time.time()  # start the time for checking delivery time
-    print("Status: " + hex(radio.get_status()))
-    print("Code: " + str(radio.write(sendMessage)))  # just write the message to radio
-    # print("Sent the message: {}".format(sendMessage))  # print a message after succesfull send
-    # radio.startListening()  # Start listening the radio
-    #
-    # while not radio.available(0):
-    #     time.sleep(1 / 100)
-    #     if time.time() - start > 2:
-    #         print("Timed out.")  # print errror message if radio disconnected or not functioning anymore
-    #         break
-    # radio.stopListening()  # close radio
-    time.sleep(3)  # give delay of 3 seconds
+    print("Choose a category:")
+    print("0 - General Commands")
+    print("1 - Action Commands")
+    print("2 - Measurement Commands")
+    print("3 - Exit Program")
+
+    cat = int(input("Enter your choice: "))
+
+    if cat == 3:
+        exit(0)
+
+    while True:
+        print("Choose a command:")
+        cmd = 100
+        params = []
+        if cat == 0:
+            print("0 - Set communication activemode")
+            print("100 - Go back")
+            cmd = int(input("Choose Command"))
+        if cat == 1:
+            print("0 - Cancel Movement")
+            print("1 - Start Move Steps")
+            print("2 - Start Move CM")
+            print("3 - Start Rotate Degrees")
+            print("4 - Start Rotate Steps")
+            print("5 - Set Speed")
+            print("100 - Go back")
+            cmd = int(input("Choose Command"))
+
+            if cmd == 0:
+                pass
+            elif cmd == 1:
+                steps = int(input("Amount of steps to move? (0-65535)"))
+                params.append(steps >> 8)
+                params.append(steps & 0xFF)
+                print(params)
+                dir = input("Direction to move in? (0/1) (Optional)")
+                if len(dir.strip()) > 0:
+                    params.append(int(dir))
+            elif cmd == 2:
+                cm = int(input("Amount of CM to move? (0-65535)"))
+                params.append(cm >> 8)
+                params.append(cm & 0xF)
+                dir = input("Direction to move in? (0/1) (Optional)")
+                if len(dir.strip()) > 0:
+                    params.append(int(dir))
+            elif cmd == 3:
+                degrees = int(input("Angle in degrees to rotate? (0-65535)"))
+                params.append(degrees >> 8)
+                params.append(degrees & 0xF)
+                dir = input("Direction to rotate in? (left=0,right=1)")
+                if len(dir.strip()) > 0:
+                    params.append(int(dir))
+            elif cmd == 4:
+                steps = int(input("Amount of steps to rotate? (0-65535)"))
+                params.append(steps >> 8)
+                params.append(steps & 0xF)
+                dir = input("Direction to rotate in? (left=0,right=1)")
+                if len(dir.strip()) > 0:
+                    params.append(int(dir))
+            elif cmd == 6:
+                steps = int(input("New Speed? (0-255)"))
+                params.append(steps)
+
+        cmd_lst = [
+            cat << 5 | (cmd & 0x1f),
+            current_message_id,
+            *params
+        ]
+
+        current_message_id += 1
+
+        start = time.time()  # start the time for checking delivery time
+        print("Status: " + hex(radio.get_status()))
+        print("Message: " + str(cmd_lst))
+        print("Code: " + str(radio.write(cmd_lst)))  # just write the message to radio
+
