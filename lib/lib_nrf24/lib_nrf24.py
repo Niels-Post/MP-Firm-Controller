@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/app/python
 # -*- coding: utf-8 -*-
 #
 
@@ -9,7 +9,6 @@
 #       ... of Barraca's port to BeagleBone python ...  (Joao Paulo Barraca <jpbarraca@gmail.com>)
 #                ... of maniacbug's NRF24L01 C++ library for Arduino.
 # Brian Lavery Oct 2014
-
 
 
 #    This program is free software: you can redistribute it and/or modify
@@ -28,11 +27,12 @@ import sys
 import time
 
 if __name__ == '__main__':
-    print (sys.argv[0], 'is an importable module:')
-    print ("...  from", sys.argv[0], "import lib_nrf24")
-    print ("")
+    print(sys.argv[0], 'is an importable module:')
+    print("...  from", sys.argv[0], "import lib_nrf24")
+    print("")
 
     exit()
+
 
 def _BV(x):
     return 1 << x
@@ -87,7 +87,6 @@ class NRF24:
     FIFO_STATUS = 0x17
     DYNPD = 0x1C
     FEATURE = 0x1D
-
 
     # Bit Mnemonics */
     MASK_RX_DR = 6
@@ -151,7 +150,6 @@ class NRF24:
     REUSE_TX_PL = 0xE3
     NOP = 0xFF
 
-
     # Non-P omissions
     LNA_HCURR = 0x00
 
@@ -184,17 +182,17 @@ class NRF24:
         # It should be possible to instantiate multiple objects, with different GPIO / spidev
         # EG on Raspberry, one could be RPI GPIO & spidev module, other could be virtual-GPIO
         # On rpi, only bus 0 is supported here, not bus 1 of the model B plus
-        self.GPIO = gpio   # the GPIO module
-        self.spidev = spidev # the spidev object/instance
+        self.GPIO = gpio  # the GPIO module
+        self.spidev = spidev  # the spidev object/instance
         self.channel = 76
         self.data_rate = NRF24.BR_1MBPS
-        self.wide_band = False # 2Mbs data rate in use?
-        self.p_variant = False # False for RF24L01 and true for RF24L01P (nrf24l01+)
-        self.payload_size = 5 #*< Fixed size of payloads
-        self.ack_payload_available = False #*< Whether there is an ack payload waiting
-        self.dynamic_payloads_enabled = False #*< Whether dynamic payloads are enabled.
-        self.ack_payload_length = 5 #*< Dynamic size of pending ack payload.
-        self.pipe0_reading_address = None #*< Last address set on pipe 0 for reading.
+        self.wide_band = False  # 2Mbs data rate in use?
+        self.p_variant = False  # False for RF24L01 and true for RF24L01P (nrf24l01+)
+        self.payload_size = 5  # *< Fixed size of payloads
+        self.ack_payload_available = False  # *< Whether there is an ack payload waiting
+        self.dynamic_payloads_enabled = False  # *< Whether dynamic payloads are enabled.
+        self.ack_payload_length = 5  # *< Dynamic size of pending ack payload.
+        self.pipe0_reading_address = None  # *< Last address set on pipe 0 for reading.
 
     def ce(self, level):
         if self.ce_pin == 0:
@@ -208,10 +206,8 @@ class NRF24:
             self.GPIO.output(self.ce_pin, self.GPIO.LOW)
         return
 
-
-
     def read_register(self, reg, blen=1):
-        buf = [NRF24.R_REGISTER | ( NRF24.REGISTER_MASK & reg )]
+        buf = [NRF24.R_REGISTER | (NRF24.REGISTER_MASK & reg)]
         for col in range(blen):
             buf.append(NRF24.NOP)
 
@@ -222,7 +218,7 @@ class NRF24:
         return resp[1:blen + 1]
 
     def write_register(self, reg, value, length=-1):
-        buf = [NRF24.W_REGISTER | ( NRF24.REGISTER_MASK & reg )]
+        buf = [NRF24.W_REGISTER | (NRF24.REGISTER_MASK & reg)]
         ###if isinstance(value, (int, long)):   # ng for python3. but value should never be long anyway
         if isinstance(value, int):
             if length < 0:
@@ -243,7 +239,6 @@ class NRF24:
             raise Exception("Value must be int or list")
 
         return self.spidev.xfer2(buf)[0]
-
 
     def write_payload(self, buf):
         data_len = min(self.payload_size, len(buf))
@@ -301,25 +296,24 @@ class NRF24:
             ((status >> NRF24.RX_P_NO) & 7),
             1 if status & _BV(NRF24.TX_FULL) else 0)
 
-        print (status_str)
+        print(status_str)
 
     def print_observe_tx(self, value):
-        print ("Observe Tx: %02x   Lost Pkts: %d    Retries: %d" % (value, value >> NRF24.PLOS_CNT, value & 15))
-
+        print("Observe Tx: %02x   Lost Pkts: %d    Retries: %d" % (value, value >> NRF24.PLOS_CNT, value & 15))
 
     def print_byte_register(self, name, reg, qty=1):
         extra_tab = '\t' if len(name) < 8 else 0
-        print ("%s\t%c =" % (name, extra_tab)),
+        print("%s\t%c =" % (name, extra_tab)),
         while qty > 0:
-            print ("0x%02x" % (self.read_register(reg))),
+            print("0x%02x" % (self.read_register(reg))),
             qty -= 1
             reg += 1
 
-        print ("")
+        print("")
 
     def print_address_register(self, name, reg, qty=1):
         extra_tab = '\t' if len(name) < 8 else 0
-        print ("%s\t%c =" % (name, extra_tab)),
+        print("%s\t%c =" % (name, extra_tab)),
 
         while qty > 0:
             qty -= 1
@@ -329,8 +323,7 @@ class NRF24:
             for i in buf:
                 sys.stdout.write("%02x" % i)
 
-        print ("")
-
+        print("")
 
     def setChannel(self, channel):
         self.channel = min(max(0, channel), NRF24.MAX_CHANNEL)
@@ -360,12 +353,12 @@ class NRF24:
         self.print_byte_register("DYNPD/FEATURE", NRF24.DYNPD, 2)
 
         #
-        print ("Data Rate\t = %s" % NRF24.datarate_e_str_P[self.getDataRate()])
-        print ("Model\t\t = %s" % NRF24.model_e_str_P[self.isPVariant()])
-        print ("CRC Length\t = %s" % NRF24.crclength_e_str_P[self.getCRCLength()])
-        print ("PA Power\t = %s" % NRF24.pa_dbm_e_str_P[self.getPALevel()])
+        print("Data Rate\t = %s" % NRF24.datarate_e_str_P[self.getDataRate()])
+        print("Model\t\t = %s" % NRF24.model_e_str_P[self.isPVariant()])
+        print("CRC Length\t = %s" % NRF24.crclength_e_str_P[self.getCRCLength()])
+        print("PA Power\t = %s" % NRF24.pa_dbm_e_str_P[self.getPALevel()])
 
-    def begin(self, csn_pin, ce_pin=0):   # csn & ce are RF24 terminology. csn = SPI's CE!
+    def begin(self, csn_pin, ce_pin=0):  # csn & ce are RF24 terminology. csn = SPI's CE!
         # Initialize SPI bus..
         # ce_pin is for the rx=listen or tx=trigger pin on RF24 (they call that ce !!!)
         # CE optional (at least in some circumstances, eg fixed PTX PRX roles, no powerdown)
@@ -452,51 +445,49 @@ class NRF24:
         # Begin the write
         self.startWrite(buf)
 
-        timeout = self.getMaxTimeout() #s to wait for timeout
+        timeout = self.getMaxTimeout()  # s to wait for timeout
         sent_at = time.time()
 
         while True:
-            #status = self.read_register(NRF24.OBSERVE_TX, 1)
+            # status = self.read_register(NRF24.OBSERVE_TX, 1)
             status = self.get_status()
-            if (status & (_BV(NRF24.TX_DS) | _BV(NRF24.MAX_RT))) or (time.time() - sent_at > timeout ):
+            if (status & (_BV(NRF24.TX_DS) | _BV(NRF24.MAX_RT))) or (time.time() - sent_at > timeout):
                 break
             time.sleep(10 / 1000000.0)
-        #obs = self.read_register(NRF24.OBSERVE_TX)
-        #self.print_observe_tx(obs)
-        #self.print_status(status)
+        # obs = self.read_register(NRF24.OBSERVE_TX)
+        # self.print_observe_tx(obs)
+        # self.print_status(status)
         # (for debugging)
 
         what = self.whatHappened()
 
         result = what['tx_ok']
         if what['tx_fail']:
-            self.flush_tx();    # bl  - dont jam up the fifo
+            self.flush_tx();  # bl  - dont jam up the fifo
             print("Transmit failed")
         # Handle the ack packet
         if what['rx_ready']:
             self.ack_payload_length = self.getDynamicPayloadSize()
-            self.ack_payload_available = True              ## bl
+            self.ack_payload_available = True  ## bl
 
         return result
 
     def startWrite(self, buf):
         # Transmitter power-up
-        self.write_register(NRF24.CONFIG, (self.read_register(NRF24.CONFIG) | _BV(NRF24.PWR_UP) ) & ~_BV(NRF24.PRIM_RX))
+        self.write_register(NRF24.CONFIG, (self.read_register(NRF24.CONFIG) | _BV(NRF24.PWR_UP)) & ~_BV(NRF24.PRIM_RX))
 
         # Send the payload
         self.write_payload(buf)
 
         # Allons!
         if self.ce_pin:
-            if True: #self.GPIO.RPI_REVISION > 0:
+            if True:  # self.GPIO.RPI_REVISION > 0:
                 self.ce(self.GPIO.HIGH)
                 time.sleep(10 / 1000000.0)
                 self.ce(self.GPIO.LOW)
             else:
                 # virtGPIO is slower. A 10 uSec pulse is better done with pulseOut():
                 self.GPIO.pulseOut(self.ce_pin, self.GPIO.HIGH, 10)
-
-
 
     def getDynamicPayloadSize(self):
         return self.spidev.xfer2([NRF24.R_RX_PL_WID, NRF24.NOP])[1]
@@ -516,7 +507,7 @@ class NRF24:
         if result:
             # If the caller wants the pipe number, include that
             if len(pipe_num) >= 1:
-                pipe_num[0] = ( status >> NRF24.RX_P_NO ) & 0b00000111
+                pipe_num[0] = (status >> NRF24.RX_P_NO) & 0b00000111
 
                 # Clear the status bit
 
@@ -580,11 +571,9 @@ class NRF24:
             self.write_register(NRF24.EN_RXADDR,
                                 self.read_register(NRF24.EN_RXADDR) | _BV(NRF24.child_pipe_enable[child]))
 
-
     def closeReadingPipe(self, pipe):
         self.write_register(NRF24.EN_RXADDR,
-            self.read_register(NRF24.EN_RXADDR) & ~_BV(NRF24.child_pipe_enable[pipe]))
-
+                            self.read_register(NRF24.EN_RXADDR) & ~_BV(NRF24.child_pipe_enable[pipe]))
 
     def toggle_features(self):
         buf = [NRF24.ACTIVATE, 0x73]
@@ -609,7 +598,6 @@ class NRF24:
 
         self.dynamic_payloads_enabled = True
 
-
     def enableAckPayload(self):
         # enable ack payload and dynamic payload features
         self.write_register(NRF24.FEATURE,
@@ -626,7 +614,7 @@ class NRF24:
         self.write_register(NRF24.DYNPD, self.read_register(NRF24.DYNPD) | _BV(NRF24.DPL_P1) | _BV(NRF24.DPL_P0))
 
     def writeAckPayload(self, pipe, buf, buf_len):
-        txbuffer = [NRF24.W_ACK_PAYLOAD | ( pipe & 0x7 )]
+        txbuffer = [NRF24.W_ACK_PAYLOAD | (pipe & 0x7)]
 
         max_payload_size = 32
         data_len = min(buf_len, max_payload_size)
@@ -666,7 +654,7 @@ class NRF24:
 
     def setPALevel(self, level):
         setup = self.read_register(NRF24.RF_SETUP)
-        setup &= ~( _BV(NRF24.RF_PWR_LOW) | _BV(NRF24.RF_PWR_HIGH))
+        setup &= ~(_BV(NRF24.RF_PWR_LOW) | _BV(NRF24.RF_PWR_HIGH))
         # switch uses RAM (evil!)
         if level == NRF24.PA_MAX:
             setup |= (_BV(NRF24.RF_PWR_LOW) | _BV(NRF24.RF_PWR_HIGH))
@@ -681,7 +669,6 @@ class NRF24:
             setup |= (_BV(NRF24.RF_PWR_LOW) | _BV(NRF24.RF_PWR_HIGH))
 
         self.write_register(NRF24.RF_SETUP, setup)
-
 
     def getPALevel(self):
         power = self.read_register(NRF24.RF_SETUP) & (_BV(NRF24.RF_PWR_LOW) | _BV(NRF24.RF_PWR_HIGH))
@@ -740,9 +727,8 @@ class NRF24:
             # '00' = 1MBPS
             return NRF24.BR_1MBPS
 
-
     def setCRCLength(self, length):
-        config = self.read_register(NRF24.CONFIG) & ~( _BV(NRF24.CRC_16) | _BV(NRF24.CRC_ENABLED))
+        config = self.read_register(NRF24.CONFIG) & ~(_BV(NRF24.CRC_16) | _BV(NRF24.CRC_ENABLED))
 
         if length == NRF24.CRC_DISABLED:
             # Do nothing, we turned it off above.
@@ -759,7 +745,7 @@ class NRF24:
 
     def getCRCLength(self):
         result = NRF24.CRC_DISABLED
-        config = self.read_register(NRF24.CONFIG) & ( _BV(NRF24.CRCO) | _BV(NRF24.EN_CRC))
+        config = self.read_register(NRF24.CONFIG) & (_BV(NRF24.CRCO) | _BV(NRF24.EN_CRC))
 
         if config & _BV(NRF24.EN_CRC):
             if config & _BV(NRF24.CRCO):
@@ -781,9 +767,9 @@ class NRF24:
     def getRetries(self):
         return self.read_register(NRF24.SETUP_RETR)
 
-    def getMaxTimeout(self):        # seconds
+    def getMaxTimeout(self):  # seconds
         retries = self.getRetries()
-        tout = (((250+(250*((retries& 0xf0)>>4 ))) * (retries & 0x0f)) / 1000000.0 * 2) + 0.008
+        tout = (((250 + (250 * ((retries & 0xf0) >> 4))) * (retries & 0x0f)) / 1000000.0 * 2) + 0.008
         # Fudged up to about double Barraca's calculation
         # Was too short & was timeing out wrongly.    BL
         return tout

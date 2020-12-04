@@ -1,0 +1,5 @@
+spidev
+RPi.GPIO
+numpy
+websockets
+opencv-contrib-python
