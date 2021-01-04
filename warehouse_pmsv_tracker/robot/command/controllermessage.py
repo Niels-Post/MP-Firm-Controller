@@ -19,10 +19,8 @@ class ControllerMessage:
         ]
 
     def to_string(self):
-        string = "-------ControllerMessage--------\n"
-        string += "Category ID:" + "\t" + str(self.category_id) + "\n"
-        string += "Command ID: " + "\t" + str(self.command_id) + "\n"
-        string += "Parameters: " + "\t" + str(self.parameters) + "\n"
-        string += "-----End ControllerMessage------\n"
+        string = "Cat:" + str(self.category_id) + ","
+        string += "Cmd:" + str(self.command_id) + ","
+        string += "Params:" + str(self.parameters)
         return string
 

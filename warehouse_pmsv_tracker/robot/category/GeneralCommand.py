@@ -10,3 +10,11 @@ class GeneralCommand:
             0,
             []
         )
+
+    @classmethod
+    def set_id(cls, id: int):
+        return ControllerMessage(
+            cls.category_id,
+            1,
+            [id]
+        )

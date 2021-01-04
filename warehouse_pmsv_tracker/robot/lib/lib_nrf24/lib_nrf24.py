@@ -470,7 +470,7 @@ class NRF24:
             self.ack_payload_length = self.getDynamicPayloadSize()
             self.ack_payload_available = True  ## bl
 
-        return what
+        return result != 0 and not what['tx_fail']
 
     def startWrite(self, buf):
         # Transmitter power-up

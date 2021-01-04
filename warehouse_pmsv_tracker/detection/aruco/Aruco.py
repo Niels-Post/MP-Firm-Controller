@@ -1,6 +1,6 @@
 import os
 from itertools import product
-from typing import Union, List, Iterable, NewType, Collection
+from typing import Union, List, Iterable, NewType, Collection, Dict
 
 import cv2
 import numpy as np
@@ -38,6 +38,7 @@ class ArucoDetectionResult:
 
         return Quadrilateral(*self.corners[np.where(self.ids == markers)[0][0]][0][[0,1,3,2]]) if np.any(
             self.ids == markers) else Quadrilateral(*[(0,0)] * 4)
+
 
     def get_four_marker_quadrilateral(self, square: ArucoSquare) -> Union[Quadrilateral, None]:
         """"
@@ -80,6 +81,7 @@ class Aruco:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         corners, ids, _ = aruco.detectMarkers(gray, self.aruco_dict, parameters=self.parameters)
+        ids = ids.flatten()
         return ArucoDetectionResult(corners, ids)
 
     @classmethod

@@ -8,6 +8,8 @@ from warehouse_pmsv_tracker.robot.category.GeneralCommand import GeneralCommand
 from warehouse_pmsv_tracker.robot.command.controllermessage import ControllerMessage
 from warehouse_pmsv_tracker.robot.command.robotmessage import RobotMessage
 
+robot_id = 0x02
+
 
 def set_text(text: Text, value: str):
     text.config(state=NORMAL)
@@ -29,13 +31,12 @@ class RobotConnectionDemo:
 
     def send_and_log_command(self, message: ControllerMessage, extra_callback=None):
         def cb(msg: RobotMessage):
-            print(message.to_string())
             add_lines(self.received_commands, msg.to_string())
             if extra_callback is not None:
                 extra_callback(msg)
 
         add_lines(self.sent_commands, message.to_string())
-        self.connection.send_command(0x04, message, cb)
+        self.connection.send_command(robot_id, message, cb)
 
     # START ACTION COMMANDS
 
@@ -134,7 +135,6 @@ class RobotConnectionDemo:
         else:
             val = [v for v in struct.pack("f", float(val))]
 
-        self.send_and_log_command(ConfigurationCommand.set_value(configid, val))
 
     def add_set_value_ui(self, offset):
         # Config ID input
@@ -288,7 +288,7 @@ class RobotConnectionDemo:
 
     def __init__(self):
         self.connection = MultiRobotConnection()
-        self.connection.register_robot(0x04)
+        self.connection.register_robot(robot_id)
 
         self.root = Tk()
         self.root.geometry('1000x800')
@@ -317,8 +317,6 @@ class RobotConnectionDemo:
             self.connection.process_incoming_data()
 
 
-def RunRobotConnectionDemo():
-    demo = RobotConnectionDemo()
 
 
 if __name__ == '__main__':

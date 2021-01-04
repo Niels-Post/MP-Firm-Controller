@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 from warehouse_pmsv_tracker.app.demo._DemoUtils_ import open_windows, is_any_closed
-from warehouse_pmsv_tracker.detection.ArucoDetectionPipeline import PositionDetectionPipeline
+from warehouse_pmsv_tracker.detection.ArucoDetectionPipeline import ArucoDetectionPipeline
 from warehouse_pmsv_tracker.detection.transformation.shape import Rectangle
 
 undistortion_file = "../../../resources/cybertrack_h3_calibration.yaml"
@@ -17,7 +17,7 @@ area_dimensions = Rectangle(0, 0, 1200, 650)
 
 def PosTrackDemo():
     # Create a detection pipelin
-    detection_pipeline = PositionDetectionPipeline(undistortion_file, cv2.VideoCapture(0))
+    detection_pipeline = ArucoDetectionPipeline(undistortion_file, cv2.VideoCapture(0))
 
     # Have the pipeline detect and setup the area
     detection_pipeline.setup_area(corner_markers, area_dimensions)

@@ -28,9 +28,7 @@ class RobotMessage:
         self.data = data[2:]
 
     def to_string(self):
-        string = "-------RobotMessage-------\n"
-        string += "Message ID: \t" + str(self.message_id) + "\n"
-        string += "Return Code:\t" + str(self.return_code.name) + "\n"
-        string += "Data:       \t" + str(self.data) + "\n"
-        string += "-----End RobotMessage-----\n"
+        string = "MID:" + str(self.message_id) + ","
+        string += "Code:" + str(self.return_code.name) + ","
+        string += "Data:" + str(self.data)
         return string
