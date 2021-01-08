@@ -10,60 +10,8 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.js"></script>
 
-    <style>
-        .headercontainer {
-            padding-top: 3vh;
-            padding-bottom: 2vh;
-        }
-
-        .controls_table, .button_table {
-            table-layout: fixed;
-            width: 100%;
-        }
-
-        .controls_table td {
-            width: 33%;
-        }
-
-        #history_view .comments {
-            max-height: 70vh;
-            height: 70vh;
-            overflow-y: auto;
-        }
-
-        .column > .segment {
-            height: 85vh;
-        }
-
-        table.position {
-            table-layout: fixed;
-            width: 100%
-        }
-
-        table.position td {
-            width: 33%;
-        }
-
-        body {
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-
-    </style>
-    <script>
-        let robotData = [];
-
-        setInterval(() => {
-            fetch("/robot")
-                .then(response => response.json())
-                .then(data => {
-                    robotData = data;
-                    updateRobotList();
-                    updateRobotPosition();
-                    updateMessageLog();
-                })
-        }, 500)
-    </script>
+    <link rel="stylesheet" href="main.css">
+    <script src="main.js"></script>
 </head>
 <body>
 
@@ -77,271 +25,151 @@
 </div>
 
 <div class="ui grid ">
-
-
     <div class="six wide column">
         <div class="ui segment">
-            <img src="/webcam/video_feed" id="camfeed" alt="">
+            <div class="row">
+                <img src="/webcam/video_feed" id="camfeed" alt="" class="ui fluid image">
+            </div>
+            <div class="ui divider"></div>
+            <div class="row">
+                <h4 class="header">Test Scenario Results</h4>
+            </div>
+            <div class="row ui segment" id="testscenario_results_container">
+                <div class="ui top attached progress indicating testscenario_progress">
+                    <div class="bar"></div>
+                </div>
 
+                <div class="ui dimmer light" id="testscenario_results_dimmer">
+                    <div class="ui text loader">Running Test</div>
+                </div>
+                <table id="testscenario_results" class=" ui very basic collapsing small compact celled table">
+
+                </table>
+
+                <div class="ui bottom attached progress indicating testscenario_progress">
+                    <div class="bar"></div>
+                </div>
+            </div>
         </div>
-
     </div>
     <div class="five wide column">
         <div class="ui segment">
 
-            <div id="robotSelection" class="ui middle aligned selection list">
-
-            </div>
-            <script>
-                let exampleItem = "<div class=\"item\">" +
-                    "                <img class=\"ui avatar image\" src=\"https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Robot-512.png\">" +
-                    "                <div class=\"content\">" +
-                    "                    <div class=\"header\"></div>" +
-                    "                    <div class='content'></div>"
-                "                </div>" +
-                "            </div>";
-
-                let lastIds = [];
-                let selectedRobot = null;
-
-                function selectRobot() {
-                    selectedRobot = $(this).data("id");
-                    $(this).addClass("active");
-                    $("#currentRobotInfo").find(".button").removeClass("disabled");
-                    $("#currentRobotInfo").find(".header").html("Robot " + selectedRobot);
-                }
-
-                function updateRobotPosition() {
-                    if (selectedRobot != null) {
-                        let selectedRobotdata = null;
-                        for (let rob of robotData) {
-                            if (rob.id === selectedRobot) {
-                                selectedRobotdata = rob;
-                            }
-                        }
-                        if (selectedRobotdata == null) {
-                            return;
-                        }
-
-                        $("#currentRobotInfo").find(".position .x").html(selectedRobotdata['position'][0] )
-                        $("#currentRobotInfo").find(".position .y").html(selectedRobotdata['position'][1] )
-                        $("#currentRobotInfo").find(".position .r").html(selectedRobotdata['angle'] )
-
-
-                    }
-                }
-
-                function updateRobotList() {
-                    ids = [];
-                    for (let robot of robotData) {
-                        ids.push(robot.id)
-                    }
-                    if (lastIds.sort().join(',') !== ids.sort().join(',')) {
-                        $("#robotSelection").html("");
-                        for (let id of ids) {
-                            let item = $(exampleItem);
-                            item.find(".header").html("Robot " + id);
-                            item.data("id", id);
-                            item.attr("id", "robotselection_robot" + id)
-
-
-                            if (selectedRobot === id) {
-                                item.attr("active", true);
-                                item.addClass("positive");
-                            }
-                            item.appendTo($("#robotSelection"));
-
-                            item.click(selectRobot)
-                        }
-                        lastIds = ids;
-                    }
-                    for (let robot of robotData) {
-                        $("#robotSelection").find(`#robotselection_robot${robot.id} .content .content`).html(robot.state)
-                    }
-
-                }
-
-
-            </script>
-
-
-            <div class="ui divider"></div>
             <div id="currentRobotInfo">
-                <h3 class="header">No Robot Selected</h3>
+                <h3 class="header robotname">No Robot Selected</h3>
 
-                <table class="ui celled table position compact small center aligned">
-                    <thead>
-                    <tr>
-                        <th>x</th>
-                        <th>y</th>
-                        <th>r</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td data-label="x" class="x"></td>
-                        <td data-label="y" class="y"></td>
-                        <td data-label="r" class="r"></td>
-                    </tr>
-                    </tbody>
-                </table>
+                <div class="ui stackable grid">
+                    <div class="eight wide column">
+                        <table class="ui celled table position  center aligned">
+                            <tr>
+                                <td>x</td>
+                                <td class="x"></td>
+                            </tr>
+                            <tr>
+                                <td>y</td>
+                                <td class="y"></td>
+                            </tr>
+                            <tr>
+                                <td>r</td>
+                                <td class="r"></td>
+                            </tr>
+                        </table>
+                    </div>
 
+                    <div class="div eight wide column">
+                        <table class="controls_table">
+                            <tr>
+                                <td></td>
+                                <td>
+                                    <button class="ui disabled button fluid" id="btn_move_forward"><i
+                                            class="chevron circle up icon"></i></button>
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <button class="ui disabled button fluid" id="btn_rotate_left"><i
+                                            class="chevron circle left icon"></i></button>
+                                </td>
+                                <td>
+                                    <div class="ui input fluid center aligned" data-children-count="1">
+                                        <input type="text" id="inp_mm_deg" placeholder="mm/deg">
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="ui disabled button fluid" id="btn_rotate_right"><i
+                                            class="chevron circle right icon"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td>
+                                    <button class="ui disabled button fluid" id="btn_move_backward"><i
+                                            class="chevron circle down icon"></i></button>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </div>
 
-                <div class="ui divider"></div>
-                <table class="controls_table">
-                    <tr>
-                        <td></td>
-                        <td>
-                            <button class="ui disabled button fluid" id="btn_move_forward"><i
-                                    class="chevron circle up icon"></i></button>
-                        </td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <button class="ui disabled button fluid" id="btn_rotate_left"><i
-                                    class="chevron circle left icon"></i></button>
-                        </td>
-                        <td>
-                            <div class="ui input fluid center aligned" data-children-count="1">
-                                <input type="text" id="inp_mm_deg" placeholder="mm/deg">
-                            </div>
-                        </td>
-                        <td>
-                            <button class="ui disabled button fluid" id="btn_rotate_right"><i
-                                    class="chevron circle right icon"></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>
-                            <button class="ui disabled button fluid" id="btn_move_backward"><i
-                                    class="chevron circle down icon"></i></button>
-                        </td>
-                        <td></td>
-                    </tr>
-                </table>
-                <div class="ui divider"></div>
-                <table class="button_table">
-                    <tr>
-                        <td>
-                            <button class="ui disabled button fluid" id="btn_view_history"><i
-                                    class="history icon"></i> View communication history
-                            </button>
-                        </td>
-                    </tr>
-                </table>
+                </div>
             </div>
 
-
-            <script>
-                $(document).ready(() => {
-                    $("#btn_move_forward").click(() => {
-                        fetch(`/robot/${selectedRobot}/move/${$("#inp_mm_deg").val()}/1`);
-                    })
-
-                    $("#btn_move_backward").click(() => {
-                        fetch(`/robot/${selectedRobot}/move/${$("#inp_mm_deg").val()}/0`);
-                    })
-
-                    $("#btn_rotate_right").click(() => {
-                        fetch(`/robot/${selectedRobot}/rotate/${$("#inp_mm_deg").val()}/1`);
-                    })
-
-                    $("#btn_rotate_left").click(() => {
-                        fetch(`/robot/${selectedRobot}/rotate/${$("#inp_mm_deg").val()}/0`);
-                    })
-
-
-                })
-            </script>
-
-
             <div class="ui divider"></div>
+
+            <h4 class="header">Run Test Scenario</h4>
+
+            <div class="ui horizontally padded grid">
+                <div class="row">
+                    <div class="thirteen wide column">
+                        <div class="ui selection dropdown fluid testscenarios">
+                            <input type="hidden" name="testscenario_input" class="dropdown_value">
+                            <i class="dropdown icon"></i>
+                            <div class="default text">Select Testscenario</div>
+                            <div class="menu">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="two wide column">
+                        <div class="ui button" id="testscenario_run"><i class="play icon"></i></div>
+
+                    </div>
+                </div>
+
+                <div class="row ui segment">
+                    <div class="sixteen wide column">
+                        <div class="ui sub header">Description</div>
+                        <p id="testscenario_description"></p>
+                        <div class="ui sub header">Prerequisites</div>
+                        <p id="testscenario_prerequisites"></p>
+                        <div class="ui sub header">Result Values</div>
+                        <table id="testscenario_values" class=" ui very basic collapsing small compact celled table">
+
+                        </table>
+                    </div>
+
+                </div>
+
+            </div>
+
 
         </div>
+
     </div>
 
     <div class="five wide column" id="history_view">
         <div class="ui segment">
-            <h3 class="header">Communication history</h3>
+            <div id="robotSelection" class="ui middle aligned selection list"></div>
+
+            <div class="ui divider"></div>
+
+            <h3 class="header ui block">Communication history</h3>
             <div class="ui">
                 <div class="ui comments"></div>
             </div>
         </div>
 
 
-        <script>
-            let message_group = $(`
-                                          <div class="comment">
-                                            <a class="avatar">
-                                              <img src="">
-                                            </a>
-                                            <div class="content">
-                                              <a class="author"></a>
-                                              <div class='text'>
-                                                <div class="ui divided list">
-                                                </div>
-                                              </div>
-                                            </div>
-                                        </div>`);
-            let messageContainer = $(`
-                                <div class=item>
-                                    <div class="ui red horizontal  label message_id">test</div>
-                                    <div class="ui blue horizontal  label category"></div>
-                                    <div class="text"></div>
-                                </div>
-    `)
-
-
-            let current_message_group = null;
-            let currentMessageType = null;
-
-
-            function updateMessageLog() {
-                if (selectedRobot == null) {
-                    return;
-                }
-
-                let history_comments = $("#history_view .comments")
-                fetch(`/robot/${selectedRobot}/newmessages`)
-                    .then(response => response.json())
-                    .then(data => {
-                        for (let message of data) {
-                            if (message['type'] !== currentMessageType) {
-                                if (currentMessageType != null) {
-                                    current_message_group.appendTo(history_comments);
-                                    history_comments.append("<div class='ui divider'></div>")
-                                }
-
-                                currentMessageType = message['type'];
-
-                                current_message_group = message_group.clone();
-                                if (currentMessageType === "command") {
-                                    current_message_group.find(".avatar img").attr("src", "https://www.raspberrypi.org/wp-content/uploads/2011/10/Raspi-PGB001-300x267.png");
-                                    current_message_group.find(".author").html("Controller");
-                                } else {
-                                    current_message_group.find(".avatar img").attr("src", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Robot-512.png");
-                                    current_message_group.find(".author").html(`Robot ${selectedRobot}`);
-                                }
-
-                            }
-
-                            let current_message = messageContainer.clone();
-                            current_message.append(message['text'])
-                            current_message.find(".message_id").html(message['message_id'])
-                            current_message.find(".category").html(message['category'])
-                            current_message.appendTo(current_message_group.find(".list"))
-                        }
-                        if (data != null && data.length > 0) {
-                            current_message_group.appendTo(history_comments);
-
-
-                        }
-                        history_comments.scrollTop(history_comments.prop("scrollHeight"))
-                    })
-            }
-        </script>
     </div>
 </div>
 </body>

@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import List
 
+from flask.json import JSONEncoder
+
 
 class ReturnCode(Enum):
     SUCCESS = 0
@@ -20,6 +22,7 @@ class Response:
     message_id: int = 0
     return_code: ReturnCode = ReturnCode.SUCCESS
     data: List = []
+
 
     def __init__(self, data: List[int]):
         if len(data) < 2:

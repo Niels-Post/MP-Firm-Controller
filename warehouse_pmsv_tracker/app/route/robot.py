@@ -1,4 +1,4 @@
-from flask import Blueprint, Response, make_response, json
+from flask import Blueprint, json, jsonify
 
 from warehouse_pmsv_tracker.warehouse import WarehousePMSV
 
@@ -8,7 +8,7 @@ def construct_robot_blueprint(pmsv: WarehousePMSV):
 
     @robot_blueprint.route("")
     def get_robots():
-        return json.dumps([robot.toDict() for robot in pmsv.robots.values()])
+        return jsonify(pmsv.robots)
 
     @robot_blueprint.route("/<id>/move/<mm>/<direction>")
     def move_mm(id, mm, direction):

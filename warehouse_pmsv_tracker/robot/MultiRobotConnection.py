@@ -29,6 +29,7 @@ class UnknownRobotError(RuntimeError):
 
 
 CommandCallback = NewType("CommandCallback", Callable[[Response], None])
+ErrorCallback = NewType("ErrorCallback", Optional[Callable[[], None]])
 
 
 class CallbackStatus(Enum):
@@ -100,7 +101,7 @@ class MultiRobotConnection:
         self.current_message_id = (self.current_message_id + 1) % 255
 
     def broadcast_command(self, cmd: Command, callback: CommandCallback,
-                          errorCallback: Optional[Callable[[], None]] = None):
+                          errorCallback: ErrorCallback = None):
         test = time.time()
         self.radio.stopListening()
         self.radio.openWritingPipe(self.broadcast_write_pipe)
@@ -121,10 +122,9 @@ class MultiRobotConnection:
         success = self.radio.write(cmd.to_bytes(self.current_message_id))
         self.radio.setAutoAckPipe(0, False)
 
+        self.radio.startListening()
         if not success and errorCallback is not None:
             errorCallback()
-
-        self.radio.startListening()
         self.sent_commands[self.current_message_id] = SentCommand(callback, cmd, errorCallback)
         self._increment_message_id()
 

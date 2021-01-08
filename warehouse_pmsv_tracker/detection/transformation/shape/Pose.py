@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from flask import json
 
 from warehouse_pmsv_tracker.detection.transformation.shape import Point
 
@@ -9,6 +8,7 @@ class Pose:
     """
         Object to store information about a Pose (Position + Angle)
     """
+
     def __init__(self, position: Point, angle: float):
         self.position = position
         self.angle = angle
@@ -18,6 +18,7 @@ class Pose:
     
     A pose is represented as a circle indicating the position, and a line indicating the direction.
     """
+
     def draw(self, image: np.ndarray, position_color=(255, 0, 0), angle_color=(0, 255, 0)):
         try:
             start_position = (int(self.position[0]), int(self.position[1]))
@@ -31,3 +32,10 @@ class Pose:
             cv2.line(image, start_position, end_position, angle_color)
         except ValueError:
             pass
+
+    def __sub__(self, other):
+        pos = (self.position[0] - other.position[0], self.position[1] - other.position[1])
+        return Pose(pos, self.angle - other.angle)
+
+    def __repr__(self):
+        return "Pose(" + str(self.position) + "," + str(self.angle) + ")"

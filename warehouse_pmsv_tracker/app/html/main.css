@@ -1,0 +1,53 @@
+.headercontainer {
+    padding-top: 3vh;
+    padding-bottom: 2vh;
+}
+
+.controls_table, .button_table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.controls_table td {
+    width: 33%;
+}
+
+#history_view .comments {
+    max-height: 57vh;
+    height: 57vh;
+    overflow-y: auto;
+}
+
+.column > .segment {
+    height: 85vh;
+}
+
+table.position {
+    table-layout: fixed;
+    width: 100%
+}
+
+table.position td {
+    width: 33%;
+}
+
+body {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+
+#testscenario_results_container {
+    min-height: 5em;
+    padding: 10px;
+}
+
+#testscenario_results_container table {
+    margin: 0;
+}
+
+#robotSelection {
+    min-height: 10em;
+    max-height: 10em;
+    overflow-y: auto;
+}

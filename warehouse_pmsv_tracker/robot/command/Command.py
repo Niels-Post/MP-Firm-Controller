@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import List
 
+from flask.json import JSONEncoder
+
 
 class Category(Enum):
     GENERAL = 0
@@ -8,12 +10,15 @@ class Category(Enum):
     MEASUREMENT = 2
     CONFIGURATION = 3
 
+
 class Command:
     category_id: int = 0
     command_id: int = 0
     parameters: List[int] = []
 
     message_id = 0
+
+
 
     def __init__(self, cat_id: int, cmd_id: int, params: List[int]) -> None:
         self.category_id = cat_id
@@ -30,9 +35,4 @@ class Command:
 
     def is_response(self):
         return False
-
-    def __repr__(self):
-        string = "Cmd:" + str(self.command_id) + ","
-        string += "Params:" + str(self.parameters)
-        return string
 
