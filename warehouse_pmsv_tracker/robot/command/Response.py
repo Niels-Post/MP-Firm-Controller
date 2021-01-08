@@ -12,9 +12,11 @@ class ReturnCode(Enum):
     COMMAND_PARSE_ERROR = 6
     UNKOWN_COMMAND_CATEGORY = 7
     UNKNOWN_COMMAND = 8
+    NO_RESPONSE = 9
+    ID_ALREADY_SET = 10
 
 
-class RobotMessage:
+class Response:
     message_id: int = 0
     return_code: ReturnCode = ReturnCode.SUCCESS
     data: List = []
@@ -27,8 +29,8 @@ class RobotMessage:
         self.return_code = ReturnCode(data[1])
         self.data = data[2:]
 
-    def to_string(self):
-        string = "MID:" + str(self.message_id) + ","
-        string += "Code:" + str(self.return_code.name) + ","
-        string += "Data:" + str(self.data)
-        return string
+    def is_response(self):
+        return True
+
+    def __repr__(self):
+        return "data:" + str(self.data)

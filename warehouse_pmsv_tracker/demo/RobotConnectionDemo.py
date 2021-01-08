@@ -5,8 +5,8 @@ from warehouse_pmsv_tracker.robot.MultiRobotConnection import MultiRobotConnecti
 from warehouse_pmsv_tracker.robot.category.ActionCommand import ActionCommand
 from warehouse_pmsv_tracker.robot.category.ConfigurationCommand import ConfigurationCommand
 from warehouse_pmsv_tracker.robot.category.GeneralCommand import GeneralCommand
-from warehouse_pmsv_tracker.robot.command.controllermessage import ControllerMessage
-from warehouse_pmsv_tracker.robot.command.robotmessage import RobotMessage
+from warehouse_pmsv_tracker.robot.command.Command import Command
+from warehouse_pmsv_tracker.robot.command.Response import Response
 
 robot_id = 0x02
 
@@ -29,8 +29,8 @@ def add_lines(text: Text, value: str):
 class RobotConnectionDemo:
     ROW_HEIGHT = 30
 
-    def send_and_log_command(self, message: ControllerMessage, extra_callback=None):
-        def cb(msg: RobotMessage):
+    def send_and_log_command(self, message: Command, extra_callback=None):
+        def cb(msg: Response):
             add_lines(self.received_commands, msg.to_string())
             if extra_callback is not None:
                 extra_callback(msg)
@@ -117,7 +117,7 @@ class RobotConnectionDemo:
     # START CONFIGURATION COMMANDS
 
     def on_set_value(self):
-        def on_type_received(message: RobotMessage):
+        def on_type_received(message: Response):
             type_char = chr(message.data[0])
             configid = int(self.config_id.get())
             val = self.value_set_value.get()
@@ -126,14 +126,6 @@ class RobotConnectionDemo:
         configid = int(self.config_id.get())
         message = ConfigurationCommand.get_type(configid)
         self.send_and_log_command(message, on_type_received)
-
-
-        configid = int(self.config_id.get())
-        val = self.value_set_value.get()
-        if configid == 5 or configid == 7:
-            val = [int(val)]
-        else:
-            val = [v for v in struct.pack("f", float(val))]
 
 
     def add_set_value_ui(self, offset):
@@ -158,13 +150,13 @@ class RobotConnectionDemo:
 
     def on_get_value(self):
         # Get the type
-        def on_type_received(message: RobotMessage):
+        def on_type_received(message: Response):
             type_char = chr(message.data[0])
             self.get_type_string.set(type_char)
             configid = int(self.config_id.get())
             message = ConfigurationCommand.get_value(configid)
 
-            def on_value_received(message: RobotMessage):
+            def on_value_received(message: Response):
                 value = "ParseError"
                 if type_char == "f":
                     bytestr = bytearray(message.data)
@@ -289,6 +281,7 @@ class RobotConnectionDemo:
     def __init__(self):
         self.connection = MultiRobotConnection()
         self.connection.register_robot(robot_id)
+        self.connection.radio.printDetails()
 
         self.root = Tk()
         self.root.geometry('1000x800')

@@ -1,3 +1,3 @@
-from .Aruco import Aruco,ArucoDetectionResult, ArucoID, ArucoSquare
+from .Aruco import Aruco,ArucoDetectionResult, ArucoID, ArucoQuad
 
-__all__ = ['Aruco', 'ArucoDetectionResult', 'ArucoID', 'ArucoSquare']
+__all__ = ['Aruco', 'ArucoDetectionResult', 'ArucoID', 'ArucoQuad']

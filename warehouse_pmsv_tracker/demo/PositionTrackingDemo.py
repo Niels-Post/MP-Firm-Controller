@@ -2,11 +2,11 @@
 import cv2
 import numpy as np
 
-from warehouse_pmsv_tracker.app.demo._DemoUtils_ import open_windows, is_any_closed
+from warehouse_pmsv_tracker.demo._DemoUtils_ import open_windows, is_any_closed
 from warehouse_pmsv_tracker.detection.ArucoDetectionPipeline import ArucoDetectionPipeline
 from warehouse_pmsv_tracker.detection.transformation.shape import Rectangle
 
-undistortion_file = "../../../resources/cybertrack_h3_calibration.yaml"
+undistortion_file = "../../resources/cybertrack_h3_calibration.yaml"
 
 corner_markers = [2, 4, 3, 5]
 
@@ -17,10 +17,10 @@ area_dimensions = Rectangle(0, 0, 1200, 650)
 
 def PosTrackDemo():
     # Create a detection pipelin
-    detection_pipeline = ArucoDetectionPipeline(undistortion_file, cv2.VideoCapture(0))
+    detection_pipeline = ArucoDetectionPipeline(cv2.VideoCapture(0), undistortion_file, None, )
 
     # Have the pipeline detect and setup the area
-    detection_pipeline.setup_area(corner_markers, area_dimensions)
+    detection_pipeline._setup_area(corner_markers, area_dimensions)
 
     # Create demo windows
     windows = ["Live View", "Resulting Coordinates"]
@@ -28,7 +28,7 @@ def PosTrackDemo():
 
     # Create an image to draw the calculated coordinates on
     coordinate_system = np.ndarray(
-        [detection_pipeline.position_transformer.rect.h, detection_pipeline.position_transformer.rect.w,
+        [detection_pipeline.testarea_position_transformer.rect.h, detection_pipeline.testarea_position_transformer.rect.w,
          3])
 
     while not is_any_closed(windows):
@@ -42,7 +42,7 @@ def PosTrackDemo():
         [quad.get_pose().draw(image) for quad in quads if quad.is_valid()]
 
         # Draw the area on the live view
-        detection_pipeline.position_transformer.quad.draw(image)
+        detection_pipeline.testarea_position_transformer.quad.draw(image)
 
         # Display the live view
         cv2.imshow("LiveView", image)
@@ -57,7 +57,7 @@ def PosTrackDemo():
         [quad.get_pose().draw(coordinate_system) for quad in transformed_quads if quad.is_valid()]
 
         # Draw the are on the output view
-        detection_pipeline.position_transformer.rect.draw(coordinate_system)
+        detection_pipeline.testarea_position_transformer.rect.draw(coordinate_system)
 
         # Display the output view
         cv2.imshow("Coordinates", coordinate_system)

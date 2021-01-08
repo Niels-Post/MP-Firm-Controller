@@ -298,7 +298,8 @@ class NRF24:
 
         print(status_str)
 
-    def print_observe_tx(self, value):
+    def print_observe_tx(self):
+        value = self.read_register(NRF24.OBSERVE_TX)
         print("Observe Tx: %02x   Lost Pkts: %d    Retries: %d" % (value, value >> NRF24.PLOS_CNT, value & 15))
 
     def print_byte_register(self, name, reg, qty=1):
@@ -453,7 +454,6 @@ class NRF24:
             status = self.get_status()
             if (status & (_BV(NRF24.TX_DS) | _BV(NRF24.MAX_RT))) or (time.time() - sent_at > timeout):
                 break
-            time.sleep(10 / 1000000.0)
         # obs = self.read_register(NRF24.OBSERVE_TX)
         # self.print_observe_tx(obs)
         # self.print_status(status)
@@ -463,13 +463,12 @@ class NRF24:
 
         result = what['tx_ok']
         if result == 0 or what['tx_fail']:
-            self.flush_tx();  # bl  - dont jam up the fifo
-            print("Transmit failed")
+            self.flush_tx()  # bl  - dont jam up the fifo
         # Handle the ack packet
         if what['rx_ready']:
             self.ack_payload_length = self.getDynamicPayloadSize()
             self.ack_payload_available = True  ## bl
-
+        print(what)
         return result != 0 and not what['tx_fail']
 
     def startWrite(self, buf):
@@ -501,7 +500,7 @@ class NRF24:
 
         # Sometimes the radio specifies that there is data in one pipe but
         # doesn't set the RX flag...
-        if status & _BV(NRF24.RX_DR): #or (status & 0b00001110 != 0b00001110):
+        if status & _BV(NRF24.RX_DR):# or (status & 0b00001110 != 0b00001110):
             result = True
 
         if result:
@@ -766,6 +765,7 @@ class NRF24:
 
     def getRetries(self):
         return self.read_register(NRF24.SETUP_RETR)
+
 
     def getMaxTimeout(self):  # seconds
         retries = self.getRetries()

@@ -1,6 +1,7 @@
 import os
+from collections import namedtuple
 from itertools import product
-from typing import Union, List, Iterable, NewType, Collection, Dict
+from typing import Union, List, Iterable, NewType, Collection, Dict, NamedTuple
 
 import cv2
 import numpy as np
@@ -12,8 +13,11 @@ from warehouse_pmsv_tracker.detection.transformation.shape import Quadrilateral
 ArucoID = NewType('ArucoID', int)
 
 # Type to represent a square of ArucoIDs (topleft, topright, bottomleft, bottomright
-ArucoSquare = NewType('ArucoSquare', Collection[ArucoID])
-
+class ArucoQuad(NamedTuple):
+    tl: ArucoID
+    tr: ArucoID
+    bl: ArucoID
+    br: ArucoID
 
 class ArucoDetectionResult:
     """
@@ -23,6 +27,9 @@ class ArucoDetectionResult:
     def __init__(self, corners, ids: np.ndarray):
         self.corners = corners
         self.ids = ids
+
+    def get_all(self):
+        return zip(self.ids, self.get(self.ids.tolist()))
 
     def get(self, markers: Union[ArucoID, Iterable[ArucoID]]) -> Union[List[Quadrilateral], Quadrilateral]:
         """
@@ -40,18 +47,18 @@ class ArucoDetectionResult:
             self.ids == markers) else Quadrilateral(*[(0,0)] * 4)
 
 
-    def get_four_marker_quadrilateral(self, square: ArucoSquare) -> Union[Quadrilateral, None]:
+    def get_four_marker_quadrilateral(self, quad_markers: ArucoQuad) -> Union[Quadrilateral, None]:
         """"
             Find a quadrilateral consisting of 4 aruco markers.
 
             This method finds the outer corners of the 4 markers and returns a new quadrilateral of those corners
         """
-        if not all(np.isin(square, self.ids)): return None
+        if not all(np.isin(quad_markers, self.ids)): return None
 
         bools = sorted(product([False, True], [True, False]), key=lambda x: x[1])
 
         outer_corners = [
-            self.get(square).find_outer_corner(*bool_tup) for bool_tup, square in zip(bools, square)
+            self.get(square).find_outer_corner(*bool_tup) for bool_tup, square in zip(bools, quad_markers)
         ]
 
         return Quadrilateral(*outer_corners)

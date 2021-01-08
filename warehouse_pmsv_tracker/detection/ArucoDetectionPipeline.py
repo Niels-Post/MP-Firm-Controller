@@ -1,36 +1,33 @@
-from typing import List, Union, Tuple, Callable, NewType
+from typing import List, Union, Tuple, Callable, NewType, Dict
 
 import cv2
 
-from warehouse_pmsv_tracker.detection.aruco import Aruco
-from warehouse_pmsv_tracker.detection.aruco import ArucoSquare, ArucoID
+from warehouse_pmsv_tracker.detection.aruco import Aruco, ArucoQuad, ArucoID
 from warehouse_pmsv_tracker.detection.calibration.CameraUndistortion import CameraUndistortion
 from warehouse_pmsv_tracker.detection.transformation import PositionTransformer
 from warehouse_pmsv_tracker.detection.transformation.shape import Quadrilateral, Rectangle, Pose
 
 PoseListener = NewType('PoseListener', Callable[[Pose], None])
 
+# Called when a new marker is found. Method should return True if the marker should be tracked, or false if not
+NewMarkerListener = NewType('NewMarkerListener', Callable[[ArucoID], bool])
 
 class ArucoDetectionPipeline:
-    """The Position Detection Pipeline combines all functionality to detect a robots' position"""
+    """
+    The aruco detection pipeline takes an image from the webcam, and processes it the following way
 
-    def __init__(self,
-                 camera_undistortion_calibration_file: str,
-                 capture_device: cv2.VideoCapture,
-                 on_new_id: Callable[[ArucoID], None]):
-        self.capture_device: cv2.VideoCapture = capture_device
-        self.undistorted_image = None
-        self.camera_undistortion: CameraUndistortion = CameraUndistortion(camera_undistortion_calibration_file)
-        self.aruco_detection: Aruco = Aruco()
-        self.position_transformer: Union[PositionTransformer, None] = None
-        self.on_new_id = on_new_id
-        self.pose_listeners: List[Tuple[ArucoID, PoseListener]] = []
-        self.following: List[ArucoID] = []
-        self.corner_markers = None
+    1. Undistort image
+    2. Detect Aruco Markers
+    3. Check if new markers were found
+        3.1. If so, call the newMarkerListener
+    4. For each found marker (except markers that are in "corner_markers")
+        4.1. Transform the markers to quadriletaerals in the given real_testarea_size
+        4.2. Get the pose of the transformed quads
+        4.3. Call each listener associated with the id with the calculated pose
+    """
 
-    def setup_area(self, corner_markers: ArucoSquare, real_area_size: Rectangle,
-                   num_retries: int = 50) -> Quadrilateral:
-        self.corner_markers = corner_markers
+    def _setup_area(self,num_retries: int = 50) -> Quadrilateral:
+        self.testarea_corners = self.testarea_corners
         for _ in range(num_retries):
             success, original_image = self.capture_device.read()
             image = self.camera_undistortion.undistort(original_image)
@@ -38,54 +35,83 @@ class ArucoDetectionPipeline:
             if not success: continue
 
             detection_result = self.aruco_detection.process(image)
-            area = detection_result.get_four_marker_quadrilateral(corner_markers)
+            area = detection_result.get_four_marker_quadrilateral(self.testarea_corners)
 
             if area is not None:
                 break
         else:
             raise Exception("Cannot find area in camera image")
-        self.position_transformer = PositionTransformer(area, real_area_size)
+        self.testarea_position_transformer = PositionTransformer(area, self.real_testarea_size)
 
         return area
 
+    def __init__(self,
+                 capture_device: cv2.VideoCapture,
+                 camera_undistortion_file: str,
+                 testarea_corners: ArucoQuad,
+                 real_testarea_size: Rectangle,
+                 newmarker_listener: NewMarkerListener = lambda marker: None):
+        # Attributes for camera feed
+        self.capture_device: cv2.VideoCapture = capture_device
+
+        # Attributes for camera undistortion
+        self.undistorted_image = None
+        self.camera_undistortion: CameraUndistortion = CameraUndistortion(camera_undistortion_file)
+
+        # Attributes for Aruco detection
+        self.aruco_detection: Aruco = Aruco()
+        self.newmarker_listener = newmarker_listener
+        self.tracking: List[ArucoID] = []
+
+        # Attributes for Position Transform
+        self.testarea_corners = testarea_corners
+        self.tracked_marker_transformed_quads = dict()
+        self.real_testarea_size = real_testarea_size
+        self.testarea_position_transformer: Union[PositionTransformer, None] = None
+        self.pose_listeners: Dict[ArucoID, List[PoseListener]] = dict()
+        self._setup_area()
+
     def add_pose_listener(self, aruco_id: ArucoID, listener: PoseListener):
-        self.pose_listeners.append((aruco_id, listener))
+        if aruco_id not in self.pose_listeners:
+            self.pose_listeners[aruco_id] = []
+        self.pose_listeners[aruco_id].append(listener)
 
     def remove_pose_listeners_for_id(self, aruco_id: ArucoID):
-        for current_listener in (listener for listener in self.pose_listeners if listener[0] == aruco_id):
-            self.pose_listeners.remove(current_listener)
+        self.pose_listeners[aruco_id] = []
 
     def remove_pose_listener(self, aruco_id: ArucoID, listener: PoseListener):
-        self.pose_listeners.remove((aruco_id, listener))
+        if aruco_id not in self.pose_listeners:
+            return
+        self.pose_listeners[aruco_id] = [lstnr for lstnr in self.pose_listeners[aruco_id] if not  lstnr == listener]
 
-    def update(self):
+    def _get_transformed_quad(self, marker_id: ArucoID, original_quad: Quadrilateral) -> Quadrilateral:
+        if marker_id not in self.tracked_marker_transformed_quads:
+            self.tracked_marker_transformed_quads[marker_id] = self.testarea_position_transformer.get_transformed_quad(
+                original_quad) if original_quad.is_valid() else original_quad
+        return self.tracked_marker_transformed_quads[marker_id]
+
+    def process_next_frame(self):
         ret, original_image = self.capture_device.read()
         if not ret:
             raise Exception("Error capturing image from video source")
+
+        self.tracked_marker_transformed_quads = dict()
 
         self.undistorted_image = self.camera_undistortion.undistort(original_image, True)
 
         aruco_detection_result = self.aruco_detection.process(self.undistorted_image)
 
-        for id in aruco_detection_result.ids:
-            id = int(id)
-            if id in self.following:
-                transformed_quad = None
+        for detected_id, detected_quad in aruco_detection_result.get_all():
+            detected_id = int(detected_id)
+            if detected_id in self.tracking:
+                if detected_id in self.pose_listeners:
+                    for current_listener in self.pose_listeners[detected_id]:
+                        current_listener(self._get_transformed_quad(detected_id, detected_quad).get_pose())
 
-                for listener in self.pose_listeners:
-                    if listener[0] == id:
-                        if transformed_quad is None:
-                            transformed_quad = aruco_detection_result.get(id)
-                            if self.position_transformer is not None:
-                                transformed_quad = self.position_transformer.get_transformed_quad(
-                                    transformed_quad) if transformed_quad.is_valid() else transformed_quad
-                        listener[1](transformed_quad.get_pose())
-            elif id not in self.corner_markers:
-                self.on_new_id(id)
-                self.following.append(id)
+            elif detected_id not in self.testarea_corners:
+                self.newmarker_listener(detected_id)
+                self.tracking.append(detected_id)
 
-    def unfollow(self, id: ArucoID):
-        print("Unfollowing {}".format(id))
-        if id in self.following:
-            self.following.remove(id)
-
+    def untrack(self, id: ArucoID):
+        if id in self.tracking:
+            self.tracking.remove(id)
