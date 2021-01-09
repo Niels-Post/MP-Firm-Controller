@@ -6,12 +6,12 @@
     but an irregular quadrilateral. To be able to extract real-world coordinates from the image, positions in this
     quadrilateral need to be mapped to the coordinates of the real world.
 """
-
 import cv2
-import numpy as np
 
 from warehouse_pmsv_tracker.detection.transformation import PositionTransformer
-from warehouse_pmsv_tracker.detection.transformation.shape import Quadrilateral, Rectangle, Point
+from warehouse_pmsv_tracker.util.shape import Quadrilateral, Rectangle, Point
+
+from ._DemoUtils_ import blank_image, open_windows, is_any_closed
 
 mouse_is_down = False
 
@@ -21,7 +21,6 @@ def mouse_callback(event, x, y, flags, params):
 
     quad, rect, transformer, width, height = params
 
-
     if event == cv2.EVENT_LBUTTONDOWN:
         mouse_is_down = True
     elif event == cv2.EVENT_LBUTTONUP:
@@ -29,8 +28,8 @@ def mouse_callback(event, x, y, flags, params):
 
     if event == cv2.EVENT_MOUSEMOVE and mouse_is_down:
         # Create two blank media
-        quad_image = np.full([height, width, 3], 255)
-        rect_image = np.full([height, width, 3], 255)
+        quad_image = blank_image(width, height)
+        rect_image = blank_image(width, height)
 
         # Draw both shapes to their window
         quad.draw(quad_image)
@@ -49,8 +48,7 @@ def mouse_callback(event, x, y, flags, params):
         cv2.imshow("Input", quad_image)
 
 
-
-def PositionTransformerDemo():
+def position_transformer_demo():
     width = 150
     height = 150
 
@@ -69,15 +67,18 @@ def PositionTransformerDemo():
     # Create a positiontransformer using the quadrilateral and the rectangle
     transformer = PositionTransformer(quad, rect)
 
-    cv2.namedWindow("Input")
-    cv2.namedWindow("Output")
+    windows = ["Input", "Output"]
+    open_windows(windows)
 
     # Functionality for this demo will be executed in the mouse handler
     cv2.setMouseCallback("Input", mouse_callback, (quad, rect, transformer, width, height))
 
-    while cv2.waitKey(1) != ord("q"):
+    while not is_any_closed(windows):
         pass
+
+    cv2.destroyAllWindows()
+    exit()
 
 
 if __name__ == '__main__':
-    PositionTransformerDemo()
+    position_transformer_demo()

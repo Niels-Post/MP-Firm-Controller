@@ -1,61 +1,98 @@
+"""
+Main Interface for the PMSV application.
+
+This application exposes a webinterface through which robots can be controlled in a warehouse environment.
+
+Test Setup
+===========
+
+Robots
+---------
+
+All robots are moving platform robots running MP-Firm. Instructions on how to build the robots, and how to install MP-Firm can be found
+HERE TODO.
+After setting up, each robot needs to have a unique aruco code stuck on top. These are used to identify robots, and
+later send directed commands to them.
+
+NOTE: Make sure each robot is running the same version of MP-firm to prevent unexpected behaviour.
+
+Warehouse Environment
+------------------------
+
+Mount a webcam connected to the raspberry pi to the ceiling, with a view plane as perpendicular to the ground as possible.
+
+Mark the working area using 4 different Aruco markers. Make sure none of these match a marker that is stuck to a robot.
+Make sure the working area is rectangular, then measure it.
+
+Enter the ids of the used aruco markers in the variable 'testarea_corner_markers' below, in the order:
+top left, top right, bottom left, bottom right
+
+Input the width and height in mm (relative to the camera's view) into the variable 'testarea_dimensions' below.
+
+
+Starting Up
+--------------
+
+Make sure no robots are in camera view yet.
+
+Run the Application.
+
+Use a webbrowser to visit: <PI_IP>:5000. A web page should pop up with the camera live view.
+
+Now connect each robot using the following steps:
+
+- Turn on the robot
+- Wait for the robot to show its id on the display, make sure this matches the number of the code stuck on top
+- Introduce the robot into camera view
+- The Application should automatically connect to the robot
+- After connecting, the webpage should show the robot's number in the robot list in the top right
+
+After this, robots can be controlled through the webinterface or through the API.
+"""
+
 import logging
 import os
-import time
-from multiprocessing.context import Process
 
-import requests
 from flask import Flask
 
-from warehouse_pmsv_tracker.app.encoder.RobotJsonEncoder import RobotJsonEncoder
-from warehouse_pmsv_tracker.app.route.camfeed import construct_camfeed_blueprint
-from warehouse_pmsv_tracker.app.route.robot import construct_robot_blueprint
-from warehouse_pmsv_tracker.app.route.scenario import construct_scenario_blueprint
+from warehouse_pmsv_tracker.app.encoder import PMSVJSONEncoder
+from warehouse_pmsv_tracker.app.route import construct_robot_blueprint, construct_camfeed_blueprint, \
+    construct_scenario_blueprint
 from warehouse_pmsv_tracker.detection.aruco import ArucoQuad
-from warehouse_pmsv_tracker.detection.transformation.shape import Rectangle
+from warehouse_pmsv_tracker.util.shape import Rectangle
 from warehouse_pmsv_tracker.warehouse import WarehousePMSV
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
+testarea_corner_markers = ArucoQuad(4, 0, 1, 5)
 
-def api_task():
-    api = Flask(__name__, static_folder=os.path.dirname(__file__) + "/html", static_url_path="")
-    api.json_encoder = RobotJsonEncoder
+testarea_dimensions = Rectangle(0, 0, 1200, 650)
 
-    test = WarehousePMSV(
-        ArucoQuad(4, 0, 1, 5),
-        Rectangle(0, 0, 1200, 650)
+
+def start_pmsv_interface():
+    pmsv_webinterface = Flask(__name__, static_folder=os.path.dirname(__file__) + "/html", static_url_path="")
+    pmsv_webinterface.json_encoder = PMSVJSONEncoder
+
+    warehouse_pmsv = WarehousePMSV(
+        testarea_corner_markers,
+        testarea_dimensions
     )
-    api.register_blueprint(construct_camfeed_blueprint(test), url_prefix='/webcam')
-    api.register_blueprint(construct_robot_blueprint(test), url_prefix="/robot")
-    api.register_blueprint(construct_scenario_blueprint(test), url_prefix="/scenario")
+    pmsv_webinterface.register_blueprint(construct_camfeed_blueprint(warehouse_pmsv), url_prefix='/webcam')
+    pmsv_webinterface.register_blueprint(construct_robot_blueprint(warehouse_pmsv), url_prefix="/robot")
+    pmsv_webinterface.register_blueprint(construct_scenario_blueprint(warehouse_pmsv), url_prefix="/scenario")
 
-    @api.route("/")
+    @pmsv_webinterface.route("/")
     def root():
-        return api.send_static_file("index.html")
+        return pmsv_webinterface.send_static_file("index.html")
 
-    @api.route('/update', methods=['GET'])
+    @pmsv_webinterface.route('/update', methods=['GET'])
     def update():
-        test.update()
+        warehouse_pmsv.update()
         return "{success: true}"
 
-    api.run("0.0.0.0")
-
-
-
-def update_task():
-    while True:
-        requests.get("http://127.0.0.1:5000/update")
+    pmsv_webinterface.run("0.0.0.0")
 
 
 if __name__ == '__main__':
-    api_process = Process(target=api_task)
-    api_process.start()
-
-    time.sleep(1)
-
-    # update_process = Process(target=update_task)
-    # update_process.start()
-
-    api_process.join()
-    # update_process.join()
+    start_pmsv_interface()

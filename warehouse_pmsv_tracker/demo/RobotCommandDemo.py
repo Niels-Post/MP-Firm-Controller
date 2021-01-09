@@ -1,14 +1,12 @@
+from warehouse_pmsv_tracker.robot.lib import NRF24
+from RPi import GPIO
+from spidev import SpiDev
 import time
-
-import RPi.GPIO as GPIO
-import spidev
-
-from warehouse_pmsv_tracker.robot.lib.lib_nrf24.lib_nrf24 import NRF24
 
 GPIO.setmode(GPIO.BCM)
 
 pipes = [[0xE0, 0xE0, 0xF1, 0xF1, 0xE4], [0xE0, 0xE0, 0xF1, 0xF1, 0xE4]]
-radio = NRF24(GPIO, spidev.SpiDev())
+radio = NRF24(GPIO, SpiDev())
 radio.begin(0, 17)
 radio.setPayloadSize(32)
 radio.setChannel(50)
@@ -24,7 +22,7 @@ radio.powerUp()
 radio.printDetails()
 
 
-def main():
+def robot_command_demo():
     current_message_id = 0
 
     while True:
@@ -100,4 +98,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    robot_command_demo()

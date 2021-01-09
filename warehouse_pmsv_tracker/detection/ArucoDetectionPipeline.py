@@ -1,16 +1,18 @@
-from typing import List, Union, Tuple, Callable, NewType, Dict
+from typing import NewType, Callable, List, Union, Dict
 
 import cv2
 
-from warehouse_pmsv_tracker.detection.aruco import Aruco, ArucoQuad, ArucoID
-from warehouse_pmsv_tracker.detection.calibration.CameraUndistortion import CameraUndistortion
+from warehouse_pmsv_tracker.detection.aruco import ArucoID, ArucoQuad, Aruco
+from warehouse_pmsv_tracker.detection.calibration import CameraUndistortion
 from warehouse_pmsv_tracker.detection.transformation import PositionTransformer
-from warehouse_pmsv_tracker.detection.transformation.shape import Quadrilateral, Rectangle, Pose
+from warehouse_pmsv_tracker.util.shape import Pose, Quadrilateral, Rectangle
 
+# Called when the pose of a marker changes
 PoseListener = NewType('PoseListener', Callable[[Pose], None])
 
 # Called when a new marker is found. Method should return True if the marker should be tracked, or false if not
 NewMarkerListener = NewType('NewMarkerListener', Callable[[ArucoID], bool])
+
 
 class ArucoDetectionPipeline:
     """
@@ -26,7 +28,7 @@ class ArucoDetectionPipeline:
         4.3. Call each listener associated with the id with the calculated pose
     """
 
-    def _setup_area(self,num_retries: int = 50) -> Quadrilateral:
+    def _setup_area(self, num_retries: int = 50) -> Quadrilateral:
         self.testarea_corners = self.testarea_corners
         for _ in range(num_retries):
             success, original_image = self.capture_device.read()
@@ -82,7 +84,7 @@ class ArucoDetectionPipeline:
     def remove_pose_listener(self, aruco_id: ArucoID, listener: PoseListener):
         if aruco_id not in self.pose_listeners:
             return
-        self.pose_listeners[aruco_id] = [lstnr for lstnr in self.pose_listeners[aruco_id] if not  lstnr == listener]
+        self.pose_listeners[aruco_id] = [lstnr for lstnr in self.pose_listeners[aruco_id] if not lstnr == listener]
 
     def _get_transformed_quad(self, marker_id: ArucoID, original_quad: Quadrilateral) -> Quadrilateral:
         if marker_id not in self.tracked_marker_transformed_quads:

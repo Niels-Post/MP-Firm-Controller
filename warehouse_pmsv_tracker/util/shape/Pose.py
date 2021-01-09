@@ -1,8 +1,7 @@
-import cv2
 import numpy as np
+import cv2
 
-from warehouse_pmsv_tracker.detection.transformation.shape import Point
-
+from .Coordinates import Point
 
 class Pose:
     """

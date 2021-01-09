@@ -1,12 +1,10 @@
 import struct
-from tkinter import *
+from tkinter import Text, NORMAL, END, INSERT, DISABLED, Label, Entry, Button, StringVar, Tk
 
-from warehouse_pmsv_tracker.robot.MultiRobotConnection import MultiRobotConnection
-from warehouse_pmsv_tracker.robot.category.ActionCommand import ActionCommand
-from warehouse_pmsv_tracker.robot.category.ConfigurationCommand import ConfigurationCommand
-from warehouse_pmsv_tracker.robot.category.GeneralCommand import GeneralCommand
-from warehouse_pmsv_tracker.robot.command.Command import Command
-from warehouse_pmsv_tracker.robot.command.Response import Response
+from warehouse_pmsv_tracker.robot import MultiRobotConnection
+from warehouse_pmsv_tracker.robot.command import Command, Response
+from warehouse_pmsv_tracker.robot.command.factory import ActionCommandFactory, ConfigurationCommandFactory, \
+    GeneralCommandFactory
 
 robot_id = 0x02
 
@@ -31,11 +29,11 @@ class RobotConnectionDemo:
 
     def send_and_log_command(self, message: Command, extra_callback=None):
         def cb(msg: Response):
-            add_lines(self.received_commands, msg.to_string())
+            add_lines(self.received_commands, msg.__repr__())
             if extra_callback is not None:
                 extra_callback(msg)
 
-        add_lines(self.sent_commands, message.to_string())
+        add_lines(self.sent_commands, message.__repr__())
         self.connection.send_command(robot_id, message, cb)
 
     # START ACTION COMMANDS
@@ -44,7 +42,7 @@ class RobotConnectionDemo:
         mm = int(self.input_distance_mm.get())
         direction = self.input_direction.get()
         direction = int(direction) if len(direction) > 0 else None
-        self.send_and_log_command(ActionCommand.start_move_mm(mm, direction))
+        self.send_and_log_command(ActionCommandFactory.start_move_mm(mm, direction))
 
     def add_move_mm_ui(self, offset):
         # Distance Field
@@ -76,7 +74,7 @@ class RobotConnectionDemo:
         degrees = int(self.input_rotation_degrees.get())
         direction = self.input_rotation_direction.get()
         direction = bool(direction)
-        self.send_and_log_command(ActionCommand.start_rotate_degrees(degrees, direction))
+        self.send_and_log_command(ActionCommandFactory.start_rotate_degrees(degrees, direction))
 
     def add_rotate_degrees_ui(self, offset):
         # Degrees rotation Input
@@ -107,7 +105,8 @@ class RobotConnectionDemo:
 
     def add_actions_ui(self, offset):
         # Actions Header
-        Label(self.root, text='Actions', bg='#F0F8FF', font=('arial', 12, 'normal')).place(x=offset[0] - 15, y=offset[1])
+        Label(self.root, text='Actions', bg='#F0F8FF', font=('arial', 12, 'normal')).place(x=offset[0] - 15,
+                                                                                           y=offset[1])
         offset[1] += 30
         self.add_move_mm_ui(offset)
         self.add_rotate_degrees_ui(offset)
@@ -121,12 +120,11 @@ class RobotConnectionDemo:
             type_char = chr(message.data[0])
             configid = int(self.config_id.get())
             val = self.value_set_value.get()
-            self.send_and_log_command(ConfigurationCommand.set_value(configid, val, type_char))
+            self.send_and_log_command(ConfigurationCommandFactory.set_value(configid, val, type_char))
 
         configid = int(self.config_id.get())
-        message = ConfigurationCommand.get_type(configid)
+        message = ConfigurationCommandFactory.get_type(configid)
         self.send_and_log_command(message, on_type_received)
-
 
     def add_set_value_ui(self, offset):
         # Config ID input
@@ -144,7 +142,7 @@ class RobotConnectionDemo:
         offset[1] += 30
 
         Button(self.root, text='Set Value', bg='#F0F8FF', font=('arial', 10, 'normal'),
-               command=self.on_set_value).place(x=offset[0],y=offset[1],width=300)
+               command=self.on_set_value).place(x=offset[0], y=offset[1], width=300)
 
         offset[1] += 40
 
@@ -154,7 +152,7 @@ class RobotConnectionDemo:
             type_char = chr(message.data[0])
             self.get_type_string.set(type_char)
             configid = int(self.config_id.get())
-            message = ConfigurationCommand.get_value(configid)
+            message = ConfigurationCommandFactory.get_value(configid)
 
             def on_value_received(message: Response):
                 value = "ParseError"
@@ -169,15 +167,11 @@ class RobotConnectionDemo:
 
                 self.get_value_string.set(value)
 
-
-
             self.send_and_log_command(message, on_value_received)
 
         configid = int(self.config_id.get())
-        message = ConfigurationCommand.get_type(configid)
+        message = ConfigurationCommandFactory.get_type(configid)
         self.send_and_log_command(message, on_type_received)
-
-
 
     def add_get_value_ui(self, offset):
         self.get_value_string = StringVar(self.root, "Unknown")
@@ -188,7 +182,6 @@ class RobotConnectionDemo:
             y=offset[1] + 5,
             width=200)
 
-
         Button(self.root, text='Get Value', bg='#F0F8FF', font=('arial', 10, 'normal'),
                command=self.on_get_value).place(
             x=offset[0],
@@ -197,16 +190,14 @@ class RobotConnectionDemo:
 
         offset[1] += 40
 
-
     def add_get_type_ui(self, offset):
         self.get_type_string = StringVar(self.root, "Unknown")
         get_type_result = Label(self.root, bg='#F0F8FF', font=('arial', 10, 'normal'),
-                                 textvariable=self.get_type_string)
+                                textvariable=self.get_type_string)
         get_type_result.place(
             x=offset[0] + 100,
             y=offset[1] + 5,
             width=200)
-
 
         Label(self.root, text='Type Character', bg='#F0F8FF', font=('arial', 10, 'normal')).place(
             x=offset[0],
@@ -215,9 +206,8 @@ class RobotConnectionDemo:
 
         offset[1] += 40
 
-
     def on_print_all(self):
-        self.send_and_log_command(ConfigurationCommand.print_all())
+        self.send_and_log_command(ConfigurationCommandFactory.print_all())
 
     def add_print_all_ui(self, offset):
         Button(self.root, text='Print All (on Due)', bg='#F0F8FF', font=('arial', 10, 'normal'),
@@ -228,7 +218,7 @@ class RobotConnectionDemo:
         offset[1] += 30
 
     def on_store(self):
-        self.send_and_log_command(ConfigurationCommand.store())
+        self.send_and_log_command(ConfigurationCommandFactory.store())
 
     def add_store_ui(self, offset):
         Button(self.root, text='Store in Flash', bg='#F0F8FF', font=('arial', 10, 'normal'),
@@ -239,7 +229,7 @@ class RobotConnectionDemo:
         offset[1] += 30
 
     def on_load(self):
-        self.send_and_log_command(ConfigurationCommand.load())
+        self.send_and_log_command(ConfigurationCommandFactory.load())
 
     def add_load_ui(self, offset):
         Button(self.root, text='Load from Flash', bg='#F0F8FF', font=('arial', 10, 'normal'),
@@ -251,7 +241,8 @@ class RobotConnectionDemo:
 
     def add_config_ui(self, offset):
         # Actions Header
-        Label(self.root, text='Configuration', bg='#F0F8FF', font=('arial', 12, 'normal')).place(x=offset[0] - 15, y=offset[1])
+        Label(self.root, text='Configuration', bg='#F0F8FF', font=('arial', 12, 'normal')).place(x=offset[0] - 15,
+                                                                                                 y=offset[1])
         offset[1] += 30
 
         self.add_set_value_ui(offset)
@@ -262,7 +253,7 @@ class RobotConnectionDemo:
         self.add_load_ui(offset)
 
     def on_reboot(self):
-        self.send_and_log_command(GeneralCommand.reboot())
+        self.send_and_log_command(GeneralCommandFactory.reboot())
 
     def add_reboot_ui(self, offset):
         Button(self.root, text='Reboot', bg='#F0F8FF', font=('arial', 10, 'normal'),
@@ -274,7 +265,7 @@ class RobotConnectionDemo:
 
     def add_general_ui(self, offset):
         Label(self.root, text='General', bg='#F0F8FF', font=('arial', 12, 'normal')).place(x=offset[0] - 15,
-                                                                                                 y=offset[1])
+                                                                                           y=offset[1])
         offset[1] += 30
         self.add_reboot_ui(offset)
 
@@ -308,8 +299,6 @@ class RobotConnectionDemo:
             self.root.update_idletasks()
             self.root.update()
             self.connection.process_incoming_data()
-
-
 
 
 if __name__ == '__main__':

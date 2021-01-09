@@ -49,14 +49,13 @@
     ---------------
 
 """
-
-
-
-
 import cv2
 
-from warehouse_pmsv_tracker.demo._DemoUtils_ import open_windows, is_any_closed
-from warehouse_pmsv_tracker.detection.calibration.CameraUndistortion import CameraUndistortion
+from warehouse_pmsv_tracker.detection.calibration import CameraUndistortion
+
+from ._DemoUtils_ import open_windows, is_any_closed
+
+
 
 def camera_undistortion_demo():
     """

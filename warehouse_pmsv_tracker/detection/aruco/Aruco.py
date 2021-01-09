@@ -1,16 +1,14 @@
-import os
-from collections import namedtuple
+# Type to represent Aruco IDs
+from typing import NewType, NamedTuple, Union, Iterable, List
 from itertools import product
-from typing import Union, List, Iterable, NewType, Collection, Dict, NamedTuple
-
 import cv2
 import numpy as np
 from cv2 import aruco
 
-from warehouse_pmsv_tracker.detection.transformation.shape import Quadrilateral
+from warehouse_pmsv_tracker.util.shape import Quadrilateral
 
-# Type to represent Aruco IDs
 ArucoID = NewType('ArucoID', int)
+
 
 # Type to represent a square of ArucoIDs (topleft, topright, bottomleft, bottomright
 class ArucoQuad(NamedTuple):
@@ -19,12 +17,13 @@ class ArucoQuad(NamedTuple):
     bl: ArucoID
     br: ArucoID
 
+
 class ArucoDetectionResult:
     """
     A datatype containing information about a set of detected aruco markers
     """
 
-    def __init__(self, corners, ids: np.ndarray):
+    def __init__(self, corners: List, ids: np.ndarray):
         self.corners = corners
         self.ids = ids
 
@@ -43,9 +42,8 @@ class ArucoDetectionResult:
         if isinstance(markers, list):
             return [self.get(marker) for marker in markers]
 
-        return Quadrilateral(*self.corners[np.where(self.ids == markers)[0][0]][0][[0,1,3,2]]) if np.any(
-            self.ids == markers) else Quadrilateral(*[(0,0)] * 4)
-
+        return Quadrilateral(*self.corners[np.where(self.ids == markers)[0][0]][0][[0, 1, 3, 2]]) if np.any(
+            self.ids == markers) else Quadrilateral(*[(0, 0)] * 4)
 
     def get_four_marker_quadrilateral(self, quad_markers: ArucoQuad) -> Union[Quadrilateral, None]:
         """"

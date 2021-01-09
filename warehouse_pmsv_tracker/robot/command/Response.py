@@ -1,10 +1,11 @@
 from enum import Enum
 from typing import List
 
-from flask.json import JSONEncoder
-
-
 class ReturnCode(Enum):
+    """
+    Possible return codes for a response from the robot.
+    (note that NO_RESPONSE should not be received, and is only used internally by the robot)
+    """
     SUCCESS = 0
     ACTION_STARTED = 1
     ROBOT_BUSY = 2
@@ -23,17 +24,17 @@ class Response:
     return_code: ReturnCode = ReturnCode.SUCCESS
     data: List = []
 
-
     def __init__(self, data: List[int]):
+        """
+        Create a response object from a list of bytes
+        :param data: Data to build a response from
+        """
         if len(data) < 2:
             raise ValueError("Parse failed, data too short")
 
         self.message_id = data[0]
         self.return_code = ReturnCode(data[1])
         self.data = data[2:]
-
-    def is_response(self):
-        return True
 
     def __repr__(self):
         return "data:" + str(self.data)

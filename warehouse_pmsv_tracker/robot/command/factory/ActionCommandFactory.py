@@ -1,17 +1,19 @@
 from typing import Union
 
-from warehouse_pmsv_tracker.robot.command.Command import Command
-from warehouse_pmsv_tracker.util.Assertion import is_unsigned_compatible, is_bool_compatible
+from warehouse_pmsv_tracker.robot.command import Command
+from warehouse_pmsv_tracker.robot.command.registry import ActionCommand, Category
+
+from warehouse_pmsv_tracker.util import is_unsigned_compatible, is_bool_compatible
 
 
-class ActionCommand:
-    category_id = 1
+class ActionCommandFactory:
+    category_id = Category.ACTION
 
     @classmethod
     def cancel_movement(cls) -> Command:
         return Command(
             cls.category_id,
-            0,
+            ActionCommand.CANCEL_MOVEMENT,
             []
         )
 
@@ -24,7 +26,7 @@ class ActionCommand:
             params.append(int(direction))
         return Command(
             cls.category_id,
-            1,
+            ActionCommand.START_MOVE_MM,
             params
         )
 
@@ -35,7 +37,7 @@ class ActionCommand:
 
         return Command(
             cls.category_id,
-            2,
+            ActionCommand.START_ROTATE_DEGREES,
             [degrees >> 8, degrees & 0xFF, int(direction)]
         )
 
@@ -45,7 +47,7 @@ class ActionCommand:
         assert is_unsigned_compatible(speed, 8)
         return Command(
             cls.category_id,
-            3,
+            ActionCommand.SET_SPEED,
             [speed]
         )
 

@@ -3,8 +3,8 @@ from typing import List
 import cv2
 import numpy as np
 
-from warehouse_pmsv_tracker.detection.transformation.shape import Pose, Point, calculate_points_centroid, calculate_shortest_distance
-from warehouse_pmsv_tracker.detection.transformation.shape.CoordinateUtils import calculate_direction_to_point
+from .Coordinates import Point, calculate_points_centroid, calculate_direction_to_point, calculate_shortest_distance
+from .Pose import Pose
 
 
 class Quadrilateral:
@@ -71,8 +71,6 @@ class Quadrilateral:
 
         return Pose(self.get_center(), angle)
 
-
-
     def get_minimum_horizontal_distances(self, point: Point) -> (float, float):
         """
         Calculate the shortest distances from a point to the left and right lines of the quadrilateral
@@ -110,7 +108,6 @@ class Quadrilateral:
         :return: True if at least one of the coordinates is non-zero
         """
         return any((any(coord != 0 for coord in point) for point in self.coordinates))
-
 
     def draw(self, image, color=(255, 0, 0), writeCoordinates=False):
         """

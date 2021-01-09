@@ -11,12 +11,12 @@ let state = {
 
 // API Endpoints
 let api_routes = {
-    robots: () => "/robot",
+    robots: () => "/robot/all",
     robot_new_messages: (robot) => `/robot/${robot}/newmessages`,
     robot_move_mm: (robot, mm, direction) => `/robot/${robot}/move/${mm}/${direction}`,
     robot_rotate: (robot, degrees, direction) => `/robot/${robot}/rotate/${degrees}/${direction}`,
-    scenarios: () => "/scenario",
-    start_scenario: (robot, scenario_id) => `/scenario/${robot}/${scenario_id}`,
+    scenarios: () => "/scenario/all",
+    start_scenario: (robot, scenario_id) => `/scenario/run/${robot}/${scenario_id}`,
     scenario_status: (uuid) => `/scenario/status/${uuid}`,
     scenario_info: (scenario_id) => `/scenario/info/${scenario_id}`
 }
@@ -127,11 +127,11 @@ function initializeTestScenarios() {
 
         fetch(api_routes.scenarios())
             .then(response => response.json())
-            .then(scenarios => {
-                for(let scen of scenarios) {
+            .then(data => {
+                for(let scenario of data['scenarios']) {
                     let testscenario_item = element_templates.testscenario_item.clone();
-                    testscenario_item.html(scen);
-                    testscenario_item.data("value", scen);
+                    testscenario_item.html(scenario);
+                    testscenario_item.data("value", scenario);
                     testscenario_item.appendTo($$.testscenario_dropdown_content);
                 }
             })
@@ -145,7 +145,7 @@ function refreshData() {
     fetch(api_routes.robots())
         .then(response => response.json())
         .then(data => {
-            state.robotData = data;
+            state.robotData = data.robots;
             updateRobotList();
             updateRobotPosition();
         })
@@ -217,7 +217,7 @@ function updateRobotList() {
  * @param messages Messages to append
  */
 function updateMessageLog(messages) {
-    for (let message of messages) {
+    for (let message of messages.messages) {
         if (message['type'] !== state.history_last_message_type) {
             state.history_last_message_type = message['type'];
 
@@ -253,7 +253,7 @@ function runTestScenario() {
     fetch(api_routes.start_scenario(state.selectedRobot, testScenario))
         .then(response => response.json())
         .then(data => {
-            state.current_scenario_uuid = data.id
+            state.current_scenario_uuid = data.uuid
             state.scenario_status_interval = setInterval(testScenarioStatus, 100);
             $$.testscenario_progress_label.html("Test Started");
             $$.testscenario_progress.removeClass("error");

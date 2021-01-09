@@ -1,10 +1,10 @@
-
 import cv2
-import numpy as np
 
-from warehouse_pmsv_tracker.demo._DemoUtils_ import open_windows, is_any_closed
-from warehouse_pmsv_tracker.detection.ArucoDetectionPipeline import ArucoDetectionPipeline
-from warehouse_pmsv_tracker.detection.transformation.shape import Rectangle
+from warehouse_pmsv_tracker.util.shape import Rectangle
+
+from warehouse_pmsv_tracker.detection import ArucoDetectionPipeline
+
+from ._DemoUtils_ import open_windows, blank_image, is_any_closed
 
 undistortion_file = "../../resources/cybertrack_h3_calibration.yaml"
 
@@ -15,21 +15,17 @@ other_markers = [1, 0]
 area_dimensions = Rectangle(0, 0, 1200, 650)
 
 
-def PosTrackDemo():
+def position_tracking_demo():
     # Create a detection pipelin
-    detection_pipeline = ArucoDetectionPipeline(cv2.VideoCapture(0), undistortion_file, None, )
-
-    # Have the pipeline detect and setup the area
-    detection_pipeline._setup_area(corner_markers, area_dimensions)
+    detection_pipeline = ArucoDetectionPipeline(cv2.VideoCapture(0), undistortion_file, corner_markers, area_dimensions)
 
     # Create demo windows
     windows = ["Live View", "Resulting Coordinates"]
     open_windows(windows)
 
     # Create an image to draw the calculated coordinates on
-    coordinate_system = np.ndarray(
-        [detection_pipeline.testarea_position_transformer.rect.h, detection_pipeline.testarea_position_transformer.rect.w,
-         3])
+    coordinate_system = blank_image(*detection_pipeline.testarea_position_transformer.rect)
+
 
     while not is_any_closed(windows):
         # Find markers 0 and 1
@@ -67,4 +63,4 @@ def PosTrackDemo():
 
 
 if __name__ == '__main__':
-    PosTrackDemo()
+    position_tracking_demo()

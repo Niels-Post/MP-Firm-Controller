@@ -1,16 +1,14 @@
 import struct
-from typing import List
 
-from warehouse_pmsv_tracker.robot.command.Command import Command
-
-
+from warehouse_pmsv_tracker.robot.command import Command
+from warehouse_pmsv_tracker.robot.command.registry import Category, ConfigurationCommand
 
 
-class ConfigurationCommand:
-    category_id = 3
+class ConfigurationCommandFactory:
+    category_id = Category.CONFIGURATION
 
     @classmethod
-    def set_value(cls, config_id, val: str, type: str) -> Command:
+    def set_value(cls, config_id: int, val: str, type: str) -> Command:
         listval = []
 
         if type == "f":
@@ -22,15 +20,15 @@ class ConfigurationCommand:
 
         return Command(
             cls.category_id,
-            0,
+            ConfigurationCommand.SET_VALUE,
             [config_id, *listval]
         )
 
     @classmethod
-    def get_value(cls, config_id) -> Command:
+    def get_value(cls, config_id: int) -> Command:
         return Command(
             cls.category_id,
-            1,
+            ConfigurationCommand.GET_VALUE,
             [config_id]
         )
 
@@ -38,7 +36,7 @@ class ConfigurationCommand:
     def get_type(cls, config_id) -> Command:
         return Command(
             cls.category_id,
-            2,
+            ConfigurationCommand.GET_TYPE,
             [config_id]
         )
 
@@ -46,7 +44,7 @@ class ConfigurationCommand:
     def load(cls) -> Command:
         return Command(
             cls.category_id,
-            3,
+            ConfigurationCommand.LOAD,
             []
         )
 
@@ -54,7 +52,7 @@ class ConfigurationCommand:
     def store(cls) -> Command:
         return Command(
             cls.category_id,
-            4,
+            ConfigurationCommand.STORE,
             []
         )
 
@@ -62,6 +60,6 @@ class ConfigurationCommand:
     def print_all(cls) -> Command:
         return Command(
             cls.category_id,
-            5,
+            ConfigurationCommand.PRINT_ALL,
             []
         )

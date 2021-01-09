@@ -1,6 +1,6 @@
-from typing import NewType, List, Tuple
-
 import numpy as np
+
+from typing import NewType, Tuple, List
 
 # Type to represent a 2-coordinate point
 Point = NewType('Point', Tuple[float, float])

@@ -1,13 +1,14 @@
 import cv2
 import numpy as np
 
-from warehouse_pmsv_tracker.detection.transformation.shape import Point
+from .Coordinates import Point
 
 
 class Rectangle:
     """
     An object representing a rectangle
     """
+
     def __init__(self, x: float, y: float, w: float, h: float):
         self.x = x
         self.y = y

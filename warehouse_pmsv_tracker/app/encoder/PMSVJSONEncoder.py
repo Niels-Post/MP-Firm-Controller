@@ -1,16 +1,28 @@
-from enum import Enum
+from typing import Any
 
 from flask.json import JSONEncoder
+from enum import Enum
 
-from warehouse_pmsv_tracker.detection.transformation.shape.Pose import Pose
 from warehouse_pmsv_tracker.robot import Robot
-from warehouse_pmsv_tracker.robot.command.Command import Command
-from warehouse_pmsv_tracker.robot.command.Response import Response
-from warehouse_pmsv_tracker.robot.testing.TestScenario import TestScenario
+from warehouse_pmsv_tracker.robot.command import Command, Response
+
+from warehouse_pmsv_tracker.robot.testing import TestScenario
+from warehouse_pmsv_tracker.util.shape import Pose
 
 
-class RobotJsonEncoder(JSONEncoder):
-    def default(self, o):
+class PMSVJSONEncoder(JSONEncoder):
+    """
+        Encodes JSON objects for transfer to the web client.
+
+        Currently adds JSON serialization for:
+        - Robot
+        - Command
+        - Response
+        - TestScenario
+        - Pose
+        - Enum (python's default one)
+    """
+    def default(self, o: Any):
         if isinstance(o, Robot):
             return {
                 "id": o.id,

@@ -1,39 +1,56 @@
-from typing import Callable
+from typing import Callable, List, Any, Collection
 
 import cv2
 import numpy as np
 
 
-def call_foreach(coll, fun: Callable, *args):
+def call_foreach(coll: Collection[Any], fun: Callable, *args):
+    """
+    Call a function for each item in a collection, using the given arguments
+
+    :param coll: Collection to iterate over
+    :param fun: Function to call for each item
+    :param args: Arguments to pass to each function call
+    :return:
+    """
     for el in coll:
         fun(el, *args)
 
 
 def blank_image(width: int, height: int, color: bool = True):
-    return np.ndarray([height, width, 3 if color else 1])
+    """
+    Generate a blank opencv image
+    :param width: Width of the image
+    :param height: Height of the image
+    :param color: Should the image be colored
+    :return: An empty image
+    """
+    return np.full([height, width, 3 if color else 1], 255)
 
 
-def open_windows(names: list):
+def open_windows(names: List[str]):
+    """
+    Open several named windows and show a blank image in them
+    :param names: Names of the windows to open
+    :return:
+    """
     blank = blank_image(10, 10)
     for name in names:
         cv2.namedWindow(name)
         cv2.imshow(name, blank)
 
 
-def is_any_closed(names: list):
+def is_any_closed(names: List[str]):
+    """
+    Check if any of the given windows are closed.
+
+    Can be used to check if the user wants to exit the application
+    :param names: List of names to check for
+    :return: True if any of the windows are closed
+    """
     if cv2.waitKey(1) == "q":
         return True
 
     closed_windows = (cv2.getWindowProperty(name, cv2.WND_PROP_VISIBLE) <= 0 for name in names)
 
     return any(closed_windows)
-
-
-
-if __name__ == '__main__':
-    windows = ["test", "test2", "test3"]
-    open_windows(windows)
-    while not is_any_closed(windows):
-        print("test")
-    cv2.destroyAllWindows()
-    exit()

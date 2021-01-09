@@ -1,5 +1,4 @@
-from warehouse_pmsv_tracker.detection.transformation.shape import Quadrilateral, Rectangle, Point
-
+from warehouse_pmsv_tracker.util.shape import Quadrilateral, Rectangle, Point
 
 class PositionTransformer:
     """
@@ -12,7 +11,7 @@ class PositionTransformer:
 
     def get_transformed_position(self, p: Point) -> Point:
         """
-        Transform a single position to a position in the quadrialteral
+        Transform a single position to a position in the quadrilateral
         :param p:
         :return:
         """
@@ -24,6 +23,11 @@ class PositionTransformer:
         return self.rect.get_xy_from_uv(u_coordinate, v_coordinate)
 
     def get_transformed_quad(self, quad: Quadrilateral) -> Quadrilateral:
+        """
+        Transform all positions in a quadrilateral
+        :param quad: Quad to transform
+        :return: A new quad with all transformed positions
+        """
         return Quadrilateral(
             *[self.get_transformed_position(p) for p in quad.coordinates]
         )
