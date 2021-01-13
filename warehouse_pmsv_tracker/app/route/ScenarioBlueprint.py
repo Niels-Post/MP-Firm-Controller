@@ -1,18 +1,21 @@
 from typing import Dict, Type
-
-from flask import Blueprint, jsonify
 from uuid import uuid1
 
-from warehouse_pmsv_tracker.warehouse import WarehousePMSV
+from flask import Blueprint, jsonify
+
 from warehouse_pmsv_tracker.robot.testing import TestScenario
-from warehouse_pmsv_tracker.robot.testing.scenarios import TestRobotDistancePerMotorRotation
+from warehouse_pmsv_tracker.robot.testing.scenarios import TestRobotDistancePerMotorRotation, TestRobotRotationTime, \
+    TestRobotRotationPerDistance
+from warehouse_pmsv_tracker.warehouse import WarehousePMSV
 
 
 def construct_scenario_blueprint(pmsv: WarehousePMSV):
     scenario_blueprint = Blueprint("blueprint", __name__)
 
     available_scenarios: Dict[str, Type[TestScenario]] = {
-        "robot_distance_per_motor_rotation": TestRobotDistancePerMotorRotation
+        "robot_distance_per_motor_rotation": TestRobotDistancePerMotorRotation,
+        "robot_rotation_per_distance": TestRobotRotationPerDistance,
+        "robot_rotation_time": TestRobotRotationTime
     }
 
     started_scenarios: Dict[str, TestScenario] = {}

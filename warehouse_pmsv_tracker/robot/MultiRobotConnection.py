@@ -28,7 +28,7 @@ class UnknownRobotError(RuntimeError):
 
 
 CommandCallback = NewType("CommandCallback", Callable[[Response], None])
-ErrorCallback = NewType("ErrorCallback", Optional[Callable[[], None]])
+ErrorCallback = NewType("ErrorCallback", Optional[Callable[[int], None]])
 
 
 class CallbackStatus(IntEnum):
@@ -40,7 +40,7 @@ class CallbackStatus(IntEnum):
 
 class _SentCommand:
     def __init__(self, callback: CommandCallback, original_message: Command,
-                 errorCallback: Optional[Callable[[], None]] = None):
+                 errorCallback: Optional[Callable[[int], None]] = None):
         self.callback = callback
         self.time = time.time()
         self.num_responses = 0
@@ -55,9 +55,9 @@ class _SentCommand:
         return False
 
     def is_expired(self) -> bool:
-        if time.time() > (self.time + 5) and self.num_responses == 0:
+        if time.time() > (self.time + 2) and self.num_responses == 0:
             if self.errorcallback is not None:
-                self.errorcallback()
+                self.errorcallback(self.original_message.message_id)
             return True
         return False
 
@@ -125,8 +125,14 @@ class MultiRobotConnection:
         self.sent_commands[self.current_message_id] = _SentCommand(callback, cmd, errorCallback)
         self._increment_message_id()
 
+    def clear_callback(self, message_id) -> bool:
+        if message_id in self.sent_commands:
+            del self.sent_commands[message_id]
+            return True
+        return False
+
     def send_command(self, robot_id: int, cmd: Command, callback: CommandCallback,
-                     errorCallback: Optional[Callable[[], None]] = None):
+                     errorCallback: Optional[Callable[[int], None]] = None):
         """
         Send a command to a single robot.
 
@@ -148,7 +154,7 @@ class MultiRobotConnection:
 
         self.radio.startListening()
         if not success and errorCallback is not None:
-            errorCallback()
+            errorCallback(self.current_message_id)
         self.sent_commands[self.current_message_id] = _SentCommand(callback, cmd, errorCallback)
         self._increment_message_id()
 
@@ -174,7 +180,7 @@ class MultiRobotConnection:
                     del self.sent_commands[msg.message_id]
         keys = []
 
-        for sent_command_id in self.sent_commands.keys():
+        for sent_command_id in list(self.sent_commands.keys()):
             if self.sent_commands[sent_command_id].is_expired():
                 keys.append(sent_command_id)
 

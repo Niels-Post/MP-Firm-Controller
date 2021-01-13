@@ -16,7 +16,7 @@ NewMarkerListener = NewType('NewMarkerListener', Callable[[ArucoID], bool])
 
 class ArucoDetectionPipeline:
     """
-    The aruco detection pipeline takes an image from the webcam, and processes it the following way
+    The aruco_markers detection pipeline takes an image from the webcam, and processes it the following way
 
     1. Undistort image
     2. Detect Aruco Markers

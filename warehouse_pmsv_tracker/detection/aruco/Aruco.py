@@ -1,6 +1,8 @@
 # Type to represent Aruco IDs
-from typing import NewType, NamedTuple, Union, Iterable, List
+import os
 from itertools import product
+from typing import NewType, NamedTuple, Union, Iterable, List
+
 import cv2
 import numpy as np
 from cv2 import aruco
@@ -20,7 +22,7 @@ class ArucoQuad(NamedTuple):
 
 class ArucoDetectionResult:
     """
-    A datatype containing information about a set of detected aruco markers
+    A datatype containing information about a set of detected aruco_markers markers
     """
 
     def __init__(self, corners: List, ids: np.ndarray):
@@ -47,7 +49,7 @@ class ArucoDetectionResult:
 
     def get_four_marker_quadrilateral(self, quad_markers: ArucoQuad) -> Union[Quadrilateral, None]:
         """"
-            Find a quadrilateral consisting of 4 aruco markers.
+            Find a quadrilateral consisting of 4 aruco_markers markers.
 
             This method finds the outer corners of the 4 markers and returns a new quadrilateral of those corners
         """
@@ -78,7 +80,7 @@ class Aruco:
 
     def process(self, image) -> ArucoDetectionResult:
         """
-        Find all aruco markers in an image.
+        Find all aruco_markers markers in an image.
 
         :return: An ArucoDetectionResult containing all found markers
         """
@@ -91,7 +93,7 @@ class Aruco:
 
     @classmethod
     def generate_marker_pairs(cls, amount: int, output_directory: str, aruco_dict_id=aruco.DICT_ARUCO_ORIGINAL,
-                              x_offset=20, y_offset=20, marker_size=500):
+                              x_offset=20, y_offset=20, big=True):
         """
         Generate markers for printing
 
@@ -104,16 +106,34 @@ class Aruco:
         :return:
         """
         aruco_dict = aruco.Dictionary_get(aruco_dict_id)
+        marker_size = 500 if big else 250
+        marker_count = 2 if big else 4
+        for i in range(0, amount, marker_count):
+            markers = [
+                aruco.drawMarker(aruco_dict, i + j, marker_size) for j in range(marker_count)
+            ]
 
-        for i in range(0, amount, 2):
-            marker_1 = aruco.drawMarker(aruco_dict, i, marker_size)
-            marker_2 = aruco.drawMarker(aruco_dict, i + 1, marker_size)
+            markers_a4 = np.zeros(
+                [marker_size * 2 + 4 * y_offset, marker_size * int(marker_count / 2) + x_offset * marker_count],
+                dtype=np.uint8)
 
-            markers_a4 = np.zeros([marker_size * 2 + y_offset * 4, marker_size + x_offset * 2], dtype=np.uint8)
             markers_a4.fill(255)
 
-            markers_a4[y_offset:y_offset + marker_size, x_offset:x_offset + marker_size] = marker_1
-            markers_a4[y_offset * 3 + marker_size:y_offset * 3 + marker_size * 2,
-            x_offset:x_offset + marker_size] = marker_2
+            if big:
+                markers_a4[y_offset:y_offset + marker_size, x_offset:x_offset + marker_size] = markers[0]
+                markers_a4[y_offset * 3 + marker_size:y_offset * 3 + marker_size * 2, x_offset:x_offset + marker_size] = \
+                markers[1]
+                cv2.imwrite(os.path.join(output_directory, "aruco_%i_%i.jpg") % (*[id for id in range(i, i+2)],), markers_a4)
 
-            cv2.imwrite(os.path.join(output_directory, "aruco_%i_%i.jpg") % (i - 1, i), markers_a4)
+
+            else:
+                markers_a4[y_offset:y_offset + marker_size, x_offset:x_offset + marker_size] = markers[0]
+                markers_a4[y_offset:y_offset + marker_size,
+                x_offset * 3 + marker_size: x_offset * 3 + marker_size * 2] = markers[1]
+                markers_a4[y_offset * 3 + marker_size:y_offset * 3 + marker_size * 2, x_offset:x_offset + marker_size] = \
+                markers[2]
+                markers_a4[y_offset * 3 + marker_size:y_offset * 3 + marker_size * 2,
+                x_offset * 3 + marker_size: x_offset * 3 + marker_size * 2] = markers[3]
+                cv2.imwrite(os.path.join(output_directory, "aruco_%i_%i_%i_%i.jpg") % (*[id for id in range(i, i+4)],), markers_a4)
+
+

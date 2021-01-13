@@ -11,7 +11,7 @@ Robots
 
 All robots are moving platform robots running MP-Firm. Instructions on how to build the robots, and how to install MP-Firm can be found
 HERE TODO.
-After setting up, each robot needs to have a unique aruco code stuck on top. These are used to identify robots, and
+After setting up, each robot needs to have a unique aruco_markers code stuck on top. These are used to identify robots, and
 later send directed commands to them.
 
 NOTE: Make sure each robot is running the same version of MP-firm to prevent unexpected behaviour.
@@ -24,7 +24,7 @@ Mount a webcam connected to the raspberry pi to the ceiling, with a view plane a
 Mark the working area using 4 different Aruco markers. Make sure none of these match a marker that is stuck to a robot.
 Make sure the working area is rectangular, then measure it.
 
-Enter the ids of the used aruco markers in the variable 'testarea_corner_markers' below, in the order:
+Enter the ids of the used aruco_markers markers in the variable 'testarea_corner_markers' below, in the order:
 top left, top right, bottom left, bottom right
 
 Input the width and height in mm (relative to the camera's view) into the variable 'testarea_dimensions' below.
@@ -58,6 +58,7 @@ from flask import Flask
 from warehouse_pmsv_tracker.app.encoder import PMSVJSONEncoder
 from warehouse_pmsv_tracker.app.route import construct_robot_blueprint, construct_camfeed_blueprint, \
     construct_scenario_blueprint
+from warehouse_pmsv_tracker.app.route.ConfigurationBluePrint import construct_configuration_blueprint
 from warehouse_pmsv_tracker.detection.aruco import ArucoQuad
 from warehouse_pmsv_tracker.util.shape import Rectangle
 from warehouse_pmsv_tracker.warehouse import WarehousePMSV
@@ -66,7 +67,6 @@ log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
 testarea_corner_markers = ArucoQuad(4, 0, 1, 5)
-
 testarea_dimensions = Rectangle(0, 0, 1200, 650)
 
 
@@ -81,6 +81,7 @@ def start_pmsv_interface():
     pmsv_webinterface.register_blueprint(construct_camfeed_blueprint(warehouse_pmsv), url_prefix='/webcam')
     pmsv_webinterface.register_blueprint(construct_robot_blueprint(warehouse_pmsv), url_prefix="/robot")
     pmsv_webinterface.register_blueprint(construct_scenario_blueprint(warehouse_pmsv), url_prefix="/scenario")
+    pmsv_webinterface.register_blueprint(construct_configuration_blueprint(warehouse_pmsv), url_prefix="/config")
 
     @pmsv_webinterface.route("/")
     def root():

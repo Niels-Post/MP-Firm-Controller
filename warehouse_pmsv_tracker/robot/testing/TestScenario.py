@@ -1,3 +1,4 @@
+import time
 from typing import NewType, Optional, Callable, Any, List
 
 from warehouse_pmsv_tracker.robot import Robot
@@ -30,6 +31,7 @@ class TestScenario:
         self.robot_id = robot.id
         self._robot = robot
         self.current_step = 0
+        self.current_step_start_time = 0
         self.percent_complete = 0
         self.finish_callback = finish_callback
         self.result = None
@@ -37,7 +39,8 @@ class TestScenario:
             "command": step,
             "responses": [],
             "pose_before": Pose((0, 0), 0),
-            "pose_after": Pose((0, 0), 0)
+            "pose_after": Pose((0, 0), 0),
+            "elapsed_time": 0.0
         } for step in test_steps]
 
     def _finalize_test_result(self) -> None:
@@ -70,7 +73,7 @@ class TestScenario:
         if self.finish_callback is not None:
             self.finish_callback(self)
 
-    def _on_error_occured(self):
+    def _on_error_occured(self, message_id):
         self.finished = True
         self.finish_callback(self)
 
@@ -81,8 +84,9 @@ class TestScenario:
             return
 
         if response.return_code != ReturnCode.SUCCESS:
-            return self._on_error_occured()
+            return self._on_error_occured(response.message_id)
 
+        self.test_steps[self.current_step]['elapsed_time'] = time.time() - self.current_step_start_time
         self.test_steps[self.current_step]['pose_after'] = self._robot.current_pose
         self._start_next_step()
 
@@ -96,6 +100,7 @@ class TestScenario:
         self._send_current_command()
 
     def _send_current_command(self):
+        self.current_step_start_time = time.time()
         self.test_steps[self.current_step]['pose_before'] = self._robot.current_pose
         self._robot.send_command(
             self.test_steps[self.current_step]['command'],

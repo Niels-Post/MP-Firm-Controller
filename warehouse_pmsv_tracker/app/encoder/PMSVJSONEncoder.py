@@ -3,6 +3,7 @@ from typing import Any
 from flask.json import JSONEncoder
 from enum import Enum
 
+from warehouse_pmsv_tracker.app.route.ConfigurationBluePrint import ConfigValueInformation
 from warehouse_pmsv_tracker.robot import Robot
 from warehouse_pmsv_tracker.robot.command import Command, Response
 
@@ -27,7 +28,7 @@ class PMSVJSONEncoder(JSONEncoder):
             return {
                 "id": o.id,
                 "current_pose": o.current_pose,
-                "current_state": o.current_state
+                "current_state": o.current_state.name
             }
 
         if isinstance(o, Command):
@@ -59,6 +60,14 @@ class PMSVJSONEncoder(JSONEncoder):
             return {
                 "position": o.position,
                 "angle": o.angle
+            }
+
+        if isinstance(o, ConfigValueInformation):
+            return {
+                "name": o.name,
+                "type": o.type,
+                "id": o.id,
+                "value": o.value
             }
 
         if isinstance(o, Enum):

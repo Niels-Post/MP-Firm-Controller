@@ -120,7 +120,7 @@ class RobotConnectionDemo:
             type_char = chr(message.data[0])
             configid = int(self.config_id.get())
             val = self.value_set_value.get()
-            self.send_and_log_command(ConfigurationCommandFactory.set_value(configid, val, type_char))
+            self.send_and_log_command(ConfigurationCommandFactory.set_value(configid, val))
 
         configid = int(self.config_id.get())
         message = ConfigurationCommandFactory.get_type(configid)

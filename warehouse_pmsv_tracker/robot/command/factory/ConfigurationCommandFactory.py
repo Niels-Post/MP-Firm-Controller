@@ -1,4 +1,5 @@
 import struct
+from typing import List
 
 from warehouse_pmsv_tracker.robot.command import Command
 from warehouse_pmsv_tracker.robot.command.registry import Category, ConfigurationCommand
@@ -8,20 +9,11 @@ class ConfigurationCommandFactory:
     category_id = Category.CONFIGURATION
 
     @classmethod
-    def set_value(cls, config_id: int, val: str, type: str) -> Command:
-        listval = []
-
-        if type == "f":
-            listval = list(struct.pack("f", float(val)))
-        else:
-            listval.append(int(val))
-
-
-
+    def set_value(cls, config_id: int, val: List[int]) -> Command:
         return Command(
             cls.category_id,
             ConfigurationCommand.SET_VALUE,
-            [config_id, *listval]
+            [config_id, *val]
         )
 
     @classmethod
@@ -32,13 +24,6 @@ class ConfigurationCommandFactory:
             [config_id]
         )
 
-    @classmethod
-    def get_type(cls, config_id) -> Command:
-        return Command(
-            cls.category_id,
-            ConfigurationCommand.GET_TYPE,
-            [config_id]
-        )
 
     @classmethod
     def load(cls) -> Command:
@@ -61,5 +46,21 @@ class ConfigurationCommandFactory:
         return Command(
             cls.category_id,
             ConfigurationCommand.PRINT_ALL,
+            []
+        )
+
+    @classmethod
+    def get_info(cls, configuration_id: int):
+        return Command(
+            cls.category_id,
+            ConfigurationCommand.GET_INFO,
+            [configuration_id]
+        )
+
+    @classmethod
+    def get_configurationvalue_count(cls):
+        return Command(
+            cls.category_id,
+            ConfigurationCommand.GET_CONFIGURATION_COUNT,
             []
         )

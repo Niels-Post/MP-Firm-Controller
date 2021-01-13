@@ -18,10 +18,11 @@ class ActionCommand(IntEnum):
 class ConfigurationCommand(IntEnum):
     SET_VALUE = 0
     GET_VALUE = 1
-    GET_TYPE = 2
-    LOAD = 3
-    STORE = 4
-    PRINT_ALL = 5
+    LOAD = 2
+    STORE = 3
+    PRINT_ALL = 4
+    GET_INFO = 5
+    GET_CONFIGURATION_COUNT = 6
 
 
 class GeneralCommand(IntEnum):

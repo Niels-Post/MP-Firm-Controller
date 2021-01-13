@@ -47,11 +47,11 @@ class WarehousePMSV:
         """
         self.robotConnection.broadcast_command(GeneralCommandFactory.set_id(id),
                                                lambda msg: self.robot_added(id),
-                                               lambda: self.detection_pipeline.untrack(id))
+                                               lambda msg_id: self.detection_pipeline.untrack(id))
 
     def update(self):
         """
-        Checks for incoming messages, and for updates in the position of the aruco markers
+        Checks for incoming messages, and for updates in the position of the aruco_markers markers
         :return:
         """
         self.detection_pipeline.process_next_frame()

@@ -15,11 +15,10 @@ class RobotState(IntEnum):
     Enum indicating the connection state of a connected robot
     """
     IDLE = 0
-    SUCCESS = 1
-    COMMAND_SENT = 2
-    WORKING = 3
-    ERROR_OCCURED = 4
-    DISCONNECTED = 5
+    COMMAND_SENT = 1
+    WORKING = 2
+    ERROR_OCCURED = 3
+    DISCONNECTED = 4
 
 
 def _logged_command(cmd: Command):
@@ -74,7 +73,7 @@ class Robot:
             self.multi_robot_connection.unregister_robot(self.id)
 
     def send_command(self, command: Command, response_callback: Optional[CommandCallback] = None,
-                     error_callback: ErrorCallback = None):
+                     error_callback: ErrorCallback = None, log = True):
         """
         Send a command to the robot
         :param command: Command to sent
@@ -85,9 +84,10 @@ class Robot:
         self.current_state = RobotState.COMMAND_SENT
 
         def on_response(response: Response):
-            self.logged_messages.append(_logged_response(response))
+            if log:
+                self.logged_messages.append(_logged_response(response))
             if response.return_code == ReturnCode.SUCCESS:
-                self.current_state = RobotState.SUCCESS
+                self.current_state = RobotState.IDLE
             elif response.return_code == ReturnCode.ACTION_STARTED:
                 self.current_state = RobotState.WORKING
             else:
@@ -96,10 +96,10 @@ class Robot:
             if response_callback is not None:
                 response_callback(response)
 
-        def on_error():
+        def on_error(message_id):
             self.current_state = RobotState.DISCONNECTED
             if error_callback is not None:
-                error_callback()
+                error_callback(message_id)
 
         self.multi_robot_connection.send_command(
             self.id,
@@ -107,7 +107,8 @@ class Robot:
             on_response,
             on_error
         )
-        self.logged_messages.append(_logged_command(command))
+        if log:
+            self.logged_messages.append(_logged_command(command))
 
     def _set_pose(self, new_pose: Pose):
         self.current_pose = new_pose

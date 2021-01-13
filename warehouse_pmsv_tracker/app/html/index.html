@@ -58,7 +58,18 @@
             <div id="currentRobotInfo">
                 <h3 class="header robotname">No Robot Selected</h3>
 
+
                 <div class="ui stackable grid">
+                    <div class="row">
+                        <div class="sixteen wide column">
+                            <div class="ui fluid buttons">
+                                <div class="ui button settings_button"><i class="cog icon"></i></div>
+                                <div class="ui button remove_button"><i class="trash icon"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+
                     <div class="eight wide column">
                         <table class="ui celled table position  center aligned">
                             <tr>
@@ -170,6 +181,24 @@
         </div>
 
 
+    </div>
+
+    <div class="ui large modal" id="robotsettingsmodal">
+        <div class="header">
+            Robot <span class="robot_id"></span> Settings
+        </div>
+        <div class="content">
+            <div class="stacked ui very compact grid" id="configvalue_list">
+
+            </div>
+
+        </div>
+        <div class="actions">
+            <div class="ui green button" id="robotsettings_applybutton">Apply</div>
+            <div class="ui yellow button" id="robotsettings_storebutton">Store and Reboot</div>
+            <div class="ui red button" id="robotsettings_restorebutton">Reset changes</div>
+            <div class="ui cancel button">Close</div>
+        </div>
     </div>
 </div>
 </body>

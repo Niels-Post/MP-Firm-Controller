@@ -1,3 +1,5 @@
 from .TestRobotDistancePerMotorRotation import TestRobotDistancePerMotorRotation
+from .TestRobotRotationTime import TestRobotRotationTime
+from .TestRobotRotationPerDistance import TestRobotRotationPerDistance
 
-__all__ = ["TestRobotDistancePerMotorRotation"]
+__all__ = ["TestRobotDistancePerMotorRotation", "TestRobotRotationPerDistance", "TestRobotRotationTime"]

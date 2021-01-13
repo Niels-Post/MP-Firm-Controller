@@ -5,46 +5,57 @@ from warehouse_pmsv_tracker.robot.command.factory import ActionCommandFactory
 from warehouse_pmsv_tracker.robot.testing.TestScenario import TestScenario, TestScenarioFinished
 
 
-class TestRobotDistancePerMotorRotation(TestScenario):
+class TestRobotRotationPerDistance(TestScenario):
     """
-    Test Scenario to validate the motor_rotation_degrees_per_mm_distance settings.
+    Test Scenario to validate the mm_distance_per_robot_rotation_degree.
     See get_test_description for more information
     """
 
-    def __init__(self, robot: Robot, finish_callback: TestScenarioFinished, distance: int = 500):
+    def __init__(self, robot: Robot, finish_callback: TestScenarioFinished, rotation: int = 90):
         """
         Initialize the TestScenario.
         """
-        self.distance = distance
+        self.rotation = rotation
         test_steps = [
-            ActionCommandFactory.start_move_mm(self.distance, True),
-            ActionCommandFactory.start_move_mm(self.distance, False)
+            ActionCommandFactory.start_rotate_degrees(self.rotation, True),
+            ActionCommandFactory.start_rotate_degrees(self.rotation, True),
+            ActionCommandFactory.start_rotate_degrees(self.rotation, True),
+            ActionCommandFactory.start_rotate_degrees(self.rotation, True)
         ]
         super().__init__(robot, test_steps, finish_callback)
 
     def _finalize_test_result(self):
         """
-        Calculates the recommended setting adjustment for motor_rotation_degrees_per_mm_distance.
-        Also adds some information about the traveled distances for context
+        Calculates the recommended setting adjustment for mm_distance_per_robot_rotation_degree.
+        Also adds some information about the traveled rotations for context
         :return:
         """
         self.result = {
-            "expected_distance": self.distance
+            "expected_rotation": self.rotation
         }
 
         actual_distances = []
         deviations = []
         for i, cmd in enumerate(self.test_steps):
-            diff = cmd['pose_after'] - cmd['pose_before']
-            distance = sqrt(pow(diff.position[0], 2) + pow(diff.position[1], 2))
-            actual_distances.append(round(distance, 2))
-            deviations.append(round(distance - self.result['expected_distance'], 2))
+            angle_before = cmd['pose_before'].angle
+            angle_after = cmd['pose_after'].angle
+
+            if angle_after < angle_before:
+                angle_after += 360
+
+            diff = round(angle_after - angle_before,2)
+
+            actual_distances.append(diff)
+
+            deviations.append(round(diff - self.rotation, 2))
 
         self.result['deviations'] = deviations
         self.result['actual_distances'] = actual_distances
 
+        print(deviations)
+        print(actual_distances)
         self.result['recommended_factor'] = round(
-            self.result['expected_distance'] / (sum(actual_distances) / len(actual_distances)), 2)
+            self.rotation / (sum(actual_distances) / len(actual_distances)), 2)
 
     @classmethod
     def get_test_description(cls) -> dict:

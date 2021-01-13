@@ -51,3 +51,26 @@ body {
     max-height: 10em;
     overflow-y: auto;
 }
+
+.robot_setting {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.robot_setting td {
+    padding: 1px !important;
+    margin: 0;
+}
+
+
+.robot_setting td:first-child {
+    width: 60%;
+}
+
+.robot_setting :not(:first-child) {
+    width: 20%;
+}
+
+.gone.icon {
+    display:none;
+}

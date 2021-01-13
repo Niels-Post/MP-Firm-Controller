@@ -21,7 +21,7 @@
     Test Setup
     ----------------
 
-    To run the aruco demo, connect a webcam to computer and start the demo. Three windows should show:
+    To run the aruco_markers demo, connect a webcam to computer and start the demo. Three windows should show:
     - The original image. When holding the sheet of paper in front of it, the straight lines will likely appear curved
     - An undistorted image, the lines should be straighter in this image, but parts of the image will be black
     - An undistorted image, cropped to the Region Of Interest. Lines should appear straighter, and no parts of the image
