@@ -2,7 +2,7 @@ import cv2
 
 from warehouse_pmsv_tracker.detection.aruco import Aruco
 
-from ._DemoUtils_ import open_windows, is_any_closed
+from warehouse_pmsv_tracker.demo._DemoUtils_ import open_windows, is_any_closed
 
 def aruco_demo():
     """

@@ -181,8 +181,9 @@ class MultiRobotConnection:
         keys = []
 
         for sent_command_id in list(self.sent_commands.keys()):
-            if self.sent_commands[sent_command_id].is_expired():
-                keys.append(sent_command_id)
+            if sent_command_id in self.sent_commands:
+                if self.sent_commands[sent_command_id].is_expired():
+                    keys.append(sent_command_id)
 
         for key in keys:
             self.sent_commands.pop(key, "None")
