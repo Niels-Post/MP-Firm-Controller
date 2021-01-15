@@ -10,7 +10,10 @@ from warehouse_pmsv_tracker.warehouse import WarehousePMSV
 
 def construct_configuration_blueprint(pmsv: WarehousePMSV):
     """
+        Flask BluePrint to change the settings of a robot.
 
+        :param pmsv: PMSV the robots are connected to
+        :return:  The blueprint for the /config route
     """
     configuration_blueprint = Blueprint("config", __name__)
 
@@ -20,10 +23,22 @@ def construct_configuration_blueprint(pmsv: WarehousePMSV):
 
     @configuration_blueprint.route("/get_count/<robot_id>")
     def get_config_count(robot_id):
+        """
+        Requests the amount of configuration values a robot has stored
+        :param robot_id: ID of the robot to query
+        :return:
+        """
         return jsonify(count=config_count[int(robot_id)])
 
     @configuration_blueprint.route("/sync_value_information/<robot_id>")
     def sync_value_information(robot_id):
+        """
+        Request all information about ConfigurationValues for a robot
+
+        Warning: This route causes a lot of wireless communication with the robot and should be used sparingly
+        :param robot_id: ID of the robot to query
+        :return:
+        """
         robot_id = int(robot_id)
         current_value = [1]
 
@@ -82,6 +97,11 @@ def construct_configuration_blueprint(pmsv: WarehousePMSV):
     @configuration_blueprint.route("/")
     @configuration_blueprint.route("/get_all_value_information/<robot_id>")
     def get_all_value_information(robot_id):
+        """
+        Return all stored value information for a specific robot
+        :param robot_id: ID of the robot
+        :return:
+        """
         robot_id = int(robot_id)
         if robot_id in config_values:
             return jsonify(result=config_values[robot_id],
@@ -91,6 +111,13 @@ def construct_configuration_blueprint(pmsv: WarehousePMSV):
 
     @configuration_blueprint.route("/set_value/<robot_id>/<config_id>/<value>")
     def set_value(robot_id, config_id, value):
+        """
+        Change a specific configuration value for a robot
+        :param robot_id: ID of the robot to change the value for
+        :param config_id: ID of the configuration value to change
+        :param value: The new value for the configurationvalue
+        :return:
+        """
         robot_id = int(robot_id)
         config_id = int(config_id)
         if not robot_id in config_values:
@@ -107,6 +134,11 @@ def construct_configuration_blueprint(pmsv: WarehousePMSV):
 
     @configuration_blueprint.route("/store_and_reboot/<robot_id>")
     def store_and_reboot(robot_id):
+        """
+        Store all changed settings to the robot's ROM and reboot the robot
+        :param robot_id: ID of the robot to store for
+        :return:
+        """
         def on_values_stored(resp: Response):
             pmsv.robots[robot_id].send_command(GeneralCommandFactory.reboot())
 

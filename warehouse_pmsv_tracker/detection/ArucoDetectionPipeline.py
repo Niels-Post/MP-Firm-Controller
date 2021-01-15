@@ -74,14 +74,31 @@ class ArucoDetectionPipeline:
         self._setup_area()
 
     def add_pose_listener(self, aruco_id: ArucoID, listener: PoseListener):
+        """
+        Start listening to all position changes for a specific Aruco Marker
+        :param aruco_id: ID to start listening for
+        :param listener: Listener to call when the position changes
+        :return: None
+        """
         if aruco_id not in self.pose_listeners:
             self.pose_listeners[aruco_id] = []
         self.pose_listeners[aruco_id].append(listener)
 
     def remove_pose_listeners_for_id(self, aruco_id: ArucoID):
+        """
+        Clear all pose listeners for a specific Aruco Marker ID
+        :param aruco_id: The ID to clear listeners for
+        :return: None
+        """
         self.pose_listeners[aruco_id] = []
 
     def remove_pose_listener(self, aruco_id: ArucoID, listener: PoseListener):
+        """
+        Stop calling a specific pose listener
+        :param aruco_id: ID the pose listener is registered to
+        :param listener: The specific listener
+        :return: None
+        """
         if aruco_id not in self.pose_listeners:
             return
         self.pose_listeners[aruco_id] = [lstnr for lstnr in self.pose_listeners[aruco_id] if not lstnr == listener]
@@ -93,6 +110,12 @@ class ArucoDetectionPipeline:
         return self.tracked_marker_transformed_quads[marker_id]
 
     def process_next_frame(self):
+        """
+        Retrieve the next webcam frame and perform all pipeline steps.
+
+        Calls pose listeners for any markers detected in the frame.
+        :return:
+        """
         ret, original_image = self.capture_device.read()
         if not ret:
             raise Exception("Error capturing image from video source")
@@ -115,5 +138,12 @@ class ArucoDetectionPipeline:
                 self.tracking.append(detected_id)
 
     def untrack(self, id: ArucoID):
+        """
+        Stop tracking a marker.
+
+        When the marker is detected again, the newmarker_listener will be called.
+        :param id: ID of the marker to stop tracking
+        :return:
+        """
         if id in self.tracking:
             self.tracking.remove(id)

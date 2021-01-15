@@ -22,14 +22,28 @@ def construct_scenario_blueprint(pmsv: WarehousePMSV):
 
     @scenario_blueprint.route("/all")
     def get_scenarios():
+        """
+        Get a list of the names of all available testscenarios
+        :return:
+        """
         return jsonify(scenarios=list(available_scenarios.keys()))
 
     @scenario_blueprint.route("/status/<uuid>")
     def get_status(uuid):
+        """
+        Get the status of a running testscenario
+        :param uuid: UUID of the scenario (returned when calling /run/)
+        :return:
+        """
         return jsonify(started_scenarios[uuid])
 
     @scenario_blueprint.route("/info/<id>")
     def get_scenario_info(id):
+        """
+        Get all textual information about a scenario
+        :param id:
+        :return:
+        """
         if id not in available_scenarios:
             return jsonify(error="Scenario not found")
 
@@ -37,6 +51,12 @@ def construct_scenario_blueprint(pmsv: WarehousePMSV):
 
     @scenario_blueprint.route("/run/<robot_id>/<scenario_id>")
     def run_testscenario(robot_id, scenario_id):
+        """
+        Start running a specified testscenario on a robot
+        :param robot_id: Robot to run on
+        :param scenario_id: Scenario to run
+        :return:
+        """
         if not scenario_id in available_scenarios:
             return jsonify(error="Scenario not found")
 

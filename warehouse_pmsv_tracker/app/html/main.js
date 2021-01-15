@@ -16,7 +16,15 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-
+/**
+ * Helper function for fetching json
+ *
+ * Continuously fetches a JSON object from an url until a condition becomes true
+ * @param url Url to fetch from
+ * @param condition Lambda condition (obj) -> bool. Should return true when the desired criterium is met
+ * @param n Amount of times to retry before throwing an error
+ * @returns {Promise<result>}
+ */
 async function fetch_json_until(url, condition, n = 100) {
     for (let i = 0; i < n; i++) {
         let result = await fetch_json(url);
@@ -28,31 +36,12 @@ async function fetch_json_until(url, condition, n = 100) {
     throw Error("Failed fetch_json_until")
 }
 
-async function fetch_json_continue_if(url, condition, next, attempts = 0) {
-    return new Promise((resolve, reject) => {
 
-    })
-
-    if (attempts)
-
-        await fetch_json(url);
-
-
-    do {
-        let result = await fetch_json(url);
-
-
-        while (Date.now() - start_time < 100) {
-        }
-
-        if (Date.now() - start_time > 2000) {
-            console.error("Error while retrieving count");
-            return;
-        }
-
-    } while (count === 0);
-}
-
+/**
+ * Simple wrapper function to fetch JSON objects from an url
+ * @param url Url to fetch
+ * @returns {Promise<object>}
+ */
 async function fetch_json(url) {
     return new Promise(
         (res, rej) => {
@@ -63,7 +52,7 @@ async function fetch_json(url) {
     )
 }
 
-// API Endpoints
+// All API Endpoints
 let api_routes = {
     robots: () => "/robot/all",
     robot_new_messages: (robot) => `/robot/${robot}/newmessages`,
@@ -215,6 +204,9 @@ $(document).ready(() => {
     $("#testscenario_info").click(showTestScenarioInfo);
 })
 
+/**
+ * Fetch all available test scenario's and populate the test scenario dropdown
+ */
 function initializeTestScenarios() {
     $$.testscenario_dropdown.dropdown({
         onChange: showTestScenarioInfo
@@ -252,7 +244,11 @@ function refreshData() {
     }
 }
 
-
+/**
+ * Load the configuration value names and populate the settings modal
+ * @param result Data to populate with
+ * @returns {Promise<void>}
+ */
 async function loadConfigNames(result) {
     $$.robotsettings_modal_configlist.html("");
     state.changed_configuration_values = {}
@@ -334,6 +330,10 @@ function updateRobotPosition() {
     $$.currentRobotInfo_r.html(r)
 }
 
+/**
+ * Apply all robot settings that were changed in the settings modal
+ * @returns {Promise<void>}
+ */
 async function applyChangedRobotsettings() {
     for (let config_id in state.changed_configuration_values) {
         if (!state.changed_configuration_values.hasOwnProperty(config_id)) {
@@ -352,10 +352,18 @@ async function applyChangedRobotsettings() {
     state.changed_configuration_values = {};
 }
 
+/**
+ * Store all current robot settings
+ * @returns {Promise<void>}
+ */
 async function storeChangedRobotsettings() {
     fetch(api_routes.config_store_reboot(state.selectedRobot));
 }
 
+/**
+ * Load all robot settings from the ROM (discarding changes)
+ * @returns {Promise<void>}
+ */
 async function restoreChangedRobotSettings() {
     for (let config_id in state.changed_configuration_values) {
         if (!state.changed_configuration_values.hasOwnProperty(config_id)) {
@@ -368,6 +376,10 @@ async function restoreChangedRobotSettings() {
     state.changed_configuration_values = {};
 }
 
+/**
+ * Open the robot settings modal
+ * @returns {Promise<void>}
+ */
 async function onRobotSettingsClicked() {
     $$.robotsettings_modal.find(".robot_id").html(state.selectedRobot)
     $$.robotsettings_modal.modal('show');
@@ -476,6 +488,9 @@ function runTestScenario() {
         })
 }
 
+/**
+ * Retrieve the status of the currently running testscenario and update the progress bar
+ */
 function testScenarioStatus() {
     fetch(api_routes.scenario_status(state.current_scenario_uuid))
         .then(response => response.json())
@@ -504,6 +519,10 @@ function testScenarioStatus() {
         })
 }
 
+/**
+ * Show the results of a testscenario
+ * @param results
+ */
 function showTestScenarioResults(results) {
     $$.testscenario_results.html("")
 
@@ -531,7 +550,10 @@ function showTestScenarioResults(results) {
 
 }
 
-function showTestScenarioInfo(text, info) {
+/**
+ * Display info about a test scenario
+ */
+function showTestScenarioInfo() {
     let id = $$.testscenario_dropdown_value.val()
     fetch(api_routes.scenario_info(id))
         .then(response => response.json())

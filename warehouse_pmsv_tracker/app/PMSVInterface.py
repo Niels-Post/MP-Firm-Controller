@@ -10,7 +10,7 @@ Robots
 ---------
 
 All robots are moving platform robots running MP-Firm. Instructions on how to build the robots, and how to install MP-Firm can be found
-HERE TODO.
+HERE https://www.instructables.com/Building-a-Moving-Platform-Robot-From-Scratch/.
 After setting up, each robot needs to have a unique aruco_markers code stuck on top. These are used to identify robots, and
 later send directed commands to them.
 

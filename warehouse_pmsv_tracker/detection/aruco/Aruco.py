@@ -30,6 +30,10 @@ class ArucoDetectionResult:
         self.ids = ids
 
     def get_all(self):
+        """
+        Retrieve the IDS and positions of the currently detected Aruco Markers
+        :return:
+        """
         return zip(self.ids, self.get(self.ids.tolist()))
 
     def get(self, markers: Union[ArucoID, Iterable[ArucoID]]) -> Union[List[Quadrilateral], Quadrilateral]:
