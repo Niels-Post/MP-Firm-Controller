@@ -20,7 +20,7 @@
 
 import setuptools
 
-long_description = open("README.MD").read()
+long_description = open("README.md").read()
 
 setuptools.setup(
     name="warehouse_pmsv_tracker",

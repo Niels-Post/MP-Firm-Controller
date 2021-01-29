@@ -67,7 +67,6 @@ class ArucoDetectionResult:
         """
         if isinstance(markers, list):
             return [self.get(marker) for marker in markers]
-
         return Quadrilateral(*self.corners[np.where(self.ids == markers)[0][0]][0][[0, 1, 3, 2]]) if np.any(
             self.ids == markers) else Quadrilateral(*[(0, 0)] * 4)
 
@@ -112,7 +111,7 @@ class Aruco:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         corners, ids, _ = aruco.detectMarkers(gray, self.aruco_dict, parameters=self.parameters)
-        ids = ids.flatten()
+        ids = ids.flatten() if ids is not None else np.empty([0])
         return ArucoDetectionResult(corners, ids)
 
     @classmethod

@@ -19,7 +19,7 @@
 
 
 import cv2
-from flask import Blueprint, Response
+from flask import Blueprint, Response, jsonify
 
 from warehouse_pmsv_tracker.warehouse import WarehousePMSV
 
@@ -56,5 +56,8 @@ def construct_camfeed_blueprint(pmsv: WarehousePMSV):
         """
         return Response(cameragenerator(),
                         mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+
 
     return camfeed_blueprint

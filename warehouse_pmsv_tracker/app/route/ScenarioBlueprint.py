@@ -21,11 +21,13 @@
 from typing import Dict, Type
 from uuid import uuid1
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 from warehouse_pmsv_tracker.robot.testing import TestScenario
 from warehouse_pmsv_tracker.robot.testing.scenarios import TestRobotDistancePerMotorRotation, TestRobotRotationTime, \
     TestRobotRotationPerDistance
+from warehouse_pmsv_tracker.robot.testing.scenarios.TestRobotDistanceTime import TestRobotDistanceTime
+from warehouse_pmsv_tracker.robot.testing.scenarios.TestRobotTimePerDistance import TestRobotTimePerDistance
 from warehouse_pmsv_tracker.warehouse import WarehousePMSV
 
 
@@ -35,7 +37,9 @@ def construct_scenario_blueprint(pmsv: WarehousePMSV):
     available_scenarios: Dict[str, Type[TestScenario]] = {
         "robot_distance_per_motor_rotation": TestRobotDistancePerMotorRotation,
         "robot_rotation_per_distance": TestRobotRotationPerDistance,
-        "robot_rotation_time": TestRobotRotationTime
+        "robot_rotation_time": TestRobotRotationTime,
+        "robot_distance_time": TestRobotDistanceTime,
+        "test_timer_per_distance": TestRobotTimePerDistance
     }
 
     started_scenarios: Dict[str, TestScenario] = {}
@@ -85,7 +89,7 @@ def construct_scenario_blueprint(pmsv: WarehousePMSV):
             return jsonify(error="Unknown robot")
         scenario_uuid = str(uuid1())
 
-        started_scenarios[scenario_uuid] = available_scenarios[scenario_id](pmsv.robots[robot_id], lambda x: None)
+        started_scenarios[scenario_uuid] = available_scenarios[scenario_id](pmsv.robots[robot_id], lambda x: None, **request.args)
         started_scenarios[scenario_uuid].run()
         return jsonify(uuid=scenario_uuid)
 

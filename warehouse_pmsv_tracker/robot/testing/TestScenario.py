@@ -63,6 +63,18 @@ class TestScenario:
             "elapsed_time": 0.0
         } for step in test_steps]
 
+    def on_step_done(self):
+        pass
+
+    def add_step(self, cmd: Command):
+        self.test_steps.append({
+            "command": cmd,
+            "responses": [],
+            "pose_before": Pose((0, 0), 0),
+            "pose_after": Pose((0, 0), 0),
+            "elapsed_time": 0.0
+        })
+
     def _finalize_test_result(self) -> None:
         """
         Finalize_test_result should be implemented to interpret test data.
@@ -106,8 +118,12 @@ class TestScenario:
         if response.return_code != ReturnCode.SUCCESS:
             return self._on_error_occured(response.message_id)
 
+
+
         self.test_steps[self.current_step]['elapsed_time'] = time.time() - self.current_step_start_time
         self.test_steps[self.current_step]['pose_after'] = self._robot.current_pose
+        self.on_step_done()
+        print(self.test_steps)
         self._start_next_step()
 
     def _start_next_step(self):

@@ -129,7 +129,7 @@ class Quadrilateral:
         """
         return any((any(coord != 0 for coord in point) for point in self.coordinates))
 
-    def draw(self, image, color=(255, 0, 0), writeCoordinates=False):
+    def draw(self, image, color=(255, 0, 0), writeCoordinates=False, extra: str = ""):
         """
         Draw the quadrilateral on a given image
         :param image: Image to draw the quadrilateral on
@@ -147,6 +147,10 @@ class Quadrilateral:
         cv2.line(image, tr, br, color, 1)
         cv2.line(image, bl, br, color, 1)
         cv2.circle(image, tl, 5, color)
+
+        if extra != "":
+            cntr = calculate_points_centroid([tl,tr,bl,br])
+            cv2.putText(image, extra, (int(cntr[0]), int(cntr[1])) , cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 0, 255))
 
         if writeCoordinates:
             cv2.putText(image, str(tl), tl, cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255))

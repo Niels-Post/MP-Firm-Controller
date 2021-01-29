@@ -72,7 +72,7 @@ After this, robots can be controlled through the webinterface or through the API
 import logging
 import os
 
-from flask import Flask
+from flask import Flask, jsonify
 
 from warehouse_pmsv_tracker.app.encoder import PMSVJSONEncoder
 from warehouse_pmsv_tracker.app.route import construct_robot_blueprint, construct_camfeed_blueprint, \
@@ -85,7 +85,7 @@ from warehouse_pmsv_tracker.warehouse import WarehousePMSV
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
-testarea_corner_markers = ArucoQuad(4, 0, 1, 5)
+testarea_corner_markers = ArucoQuad(1,4,0,5)
 testarea_dimensions = Rectangle(0, 0, 1200, 650)
 
 
@@ -93,10 +93,12 @@ def start_pmsv_interface():
     pmsv_webinterface = Flask(__name__, static_folder=os.path.dirname(__file__) + "/html", static_url_path="")
     pmsv_webinterface.json_encoder = PMSVJSONEncoder
 
+
     warehouse_pmsv = WarehousePMSV(
         testarea_corner_markers,
         testarea_dimensions
     )
+
     pmsv_webinterface.register_blueprint(construct_camfeed_blueprint(warehouse_pmsv), url_prefix='/webcam')
     pmsv_webinterface.register_blueprint(construct_robot_blueprint(warehouse_pmsv), url_prefix="/robot")
     pmsv_webinterface.register_blueprint(construct_scenario_blueprint(warehouse_pmsv), url_prefix="/scenario")
@@ -106,10 +108,15 @@ def start_pmsv_interface():
     def root():
         return pmsv_webinterface.send_static_file("index.html")
 
-    @pmsv_webinterface.route('/update', methods=['GET'])
-    def update():
-        warehouse_pmsv.update()
-        return "{success: true}"
+
+    @pmsv_webinterface.route("/is_area_detected")
+    def is_area_detected():
+        """
+        Check if the working area was detected
+        :return:
+        """
+
+        return jsonify(area_detected=warehouse_pmsv.detection_pipeline.testarea_position_transformer is not None)
 
     pmsv_webinterface.run("0.0.0.0")
 

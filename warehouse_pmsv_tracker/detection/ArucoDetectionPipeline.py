@@ -48,7 +48,7 @@ class ArucoDetectionPipeline:
         4.3. Call each listener associated with the id with the calculated pose
     """
 
-    def _setup_area(self, num_retries: int = 50) -> Quadrilateral:
+    def _setup_area(self, num_retries: int = 50) -> None:
         self.testarea_corners = self.testarea_corners
         for _ in range(num_retries):
             success, original_image = self.capture_device.read()
@@ -62,10 +62,11 @@ class ArucoDetectionPipeline:
             if area is not None:
                 break
         else:
-            raise Exception("Cannot find area in camera image")
+            print("\033[91mCannot find working area\033[0m")
+            self.testarea_position_transformer = None
+            return
         self.testarea_position_transformer = PositionTransformer(area, self.real_testarea_size)
 
-        return area
 
     def __init__(self,
                  capture_device: cv2.VideoCapture,
@@ -146,9 +147,15 @@ class ArucoDetectionPipeline:
 
         aruco_detection_result = self.aruco_detection.process(self.undistorted_image)
 
+        if self.testarea_position_transformer is not None:
+            self.testarea_position_transformer.quad.draw(self.undistorted_image, (255,0,0))
+
         for detected_id, detected_quad in aruco_detection_result.get_all():
+            detected_quad.draw(self.undistorted_image, (255, 255, 255), False, str(detected_id))
+
             detected_id = int(detected_id)
             if detected_id in self.tracking:
+
                 if detected_id in self.pose_listeners:
                     for current_listener in self.pose_listeners[detected_id]:
                         current_listener(self._get_transformed_quad(detected_id, detected_quad).get_pose())
